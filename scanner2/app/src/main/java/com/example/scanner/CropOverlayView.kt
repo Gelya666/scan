@@ -55,7 +55,6 @@ constructor(
         super.onDraw(canvas)
         canvas.drawRect(0f, 0f, width.toFloat(), height.toFloat(), overlayPaint)
         canvas.drawColor(Color.TRANSPARENT, PorterDuff.Mode.CLEAR)
-        canvas.restore()
         canvas.drawRect(cropRect, borderPaint)
         drawHandles(canvas)
     }
@@ -68,7 +67,7 @@ constructor(
             PointF(cropRect.right, cropRect.bottom),
             PointF(cropRect.left, cropRect.top)
         )
-        handles.forEach { point -> canvas.drawCircle(point.x, point.y, handleRadius, handlePaint) }
+        handles.forEach { point -> canvas.drawCircle(point.x, point.y, handleRadius, handlePaint)}
     }
 
     override fun onTouchEvent(event: MotionEvent): Boolean {
@@ -78,17 +77,15 @@ constructor(
                 isDragging = dragHandle != -1
                 return true
             }
-
             MotionEvent.ACTION_MOVE -> {
                 if (isDragging) {
                     updateCropRect(event.x, event.y)
                     invalidate()
                 }
             }
-
-            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                isDragging = false
-                dragHandle = -1
+                MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                    isDragging = false
+                    dragHandle = -1
             }
         }
         return super.onTouchEvent(event)
@@ -159,7 +156,6 @@ constructor(
             }
         }
     }
-
     fun getCroppedArea(bitmap: Bitmap, imageView: ImageView): Rect {
         val scale = calculateScale(bitmap, imageView)
         val offsetX = calculateOffsetX(bitmap, imageView, scale)
@@ -171,7 +167,6 @@ constructor(
             ((cropRect.bottom - offsetY / scale).toInt())
         )
     }
-
     private fun calculateScale(bitmap: Bitmap, imageView: ImageView): Float {
         val drawable = imageView.drawable ?: return 1f
         val bitmapWidth = bitmap.width.toFloat()

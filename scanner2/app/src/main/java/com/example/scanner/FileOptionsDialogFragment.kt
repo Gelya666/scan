@@ -76,7 +76,6 @@ class FileOptionsDialogFragment: DialogFragment() {
                             .setNegativeButton("Отмена"){dialog,_->dismiss()}
                             .show()
                     }
-
                         override fun onAttach(context:Context)
                         {
                             super.onAttach(context)

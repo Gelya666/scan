@@ -37,6 +37,14 @@
         app:layout_constraintStart_toStartOf="parent"
         app:srcCompat="@drawable/photo_1" />
 
+    <com.example.scanner.CropOverlayView
+        android:id="@+id/cropOverlayView"
+        android:layout_width="410dp"
+        android:layout_height="633dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"></com.example.scanner.CropOverlayView>
+
     <Button
         android:id="@+id/btnUndo"
         android:layout_width="wrap_content"
