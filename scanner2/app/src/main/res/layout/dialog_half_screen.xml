@@ -1,0 +1,184 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp">
+    <Button
+        android:layout_width="123dp"
+        android:layout_height="wrap_content"
+        android:textStyle="bold"
+        android:text="Undo"
+        android:textColor="@color/black"
+        android:backgroundTint="@color/white"
+        android:layout_marginTop="16dp"
+        />
+        <View
+            android:layout_width="80dp"
+            android:layout_height="0dp" />
+        <TextView
+            android:layout_width="123dp"
+            android:layout_height="wrap_content"
+            android:textStyle="bold"
+            android:layout_marginTop="16dp"
+            android:text="Save as" />
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:padding="16dp">
+        <ImageView
+        android:id="@+id/imageView4"
+        android:layout_width="100dp"
+        android:layout_height="100dp"
+        android:layout_weight="1"
+        app:srcCompat="@drawable/photo_1" />
+    </LinearLayout>
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="File format:"
+        android:textStyle="bold"
+        android:fontFamily="@font/fonts"/>
+    <com.google.android.material.button.MaterialButtonToggleGroup
+        android:id="@+id/toggleGroup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        app:singleSelection="true">
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_on"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textColor="#2196F3"
+            android:text="PDF"
+            app:shapeAppearance="@style/RoundedButton.Left"/>
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_off"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="IMAGE"
+            app:shapeAppearance="@style/RoundedButton.Right"/>
+    </com.google.android.material.button.MaterialButtonToggleGroup>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:fontFamily="@font/fonts"
+        android:textStyle="bold"
+        android:text="More features:">
+    </TextView>
+
+    <LinearLayout
+        android:id="@+id/icon1"
+        android:layout_width="wrap_content"
+        android:layout_height="100dp"
+        android:orientation="horizontal"
+        android:padding="16dp">
+
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="vertical">
+
+            <ImageButton
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Поделиться"
+                android:scaleType="centerInside"
+                android:src="@drawable/share" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/fonts"
+                android:gravity="center"
+                android:layout_marginTop="4dp"
+                android:text="Share"
+                android:textStyle="bold" />
+        </LinearLayout>
+        <View
+            android:layout_width="80dp"
+            android:layout_height="0dp" />
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="vertical">
+            <ImageButton
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Поделиться"
+                android:scaleType="centerInside"
+                android:src="@drawable/add_button" />
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/fonts"
+                android:gravity="center"
+                android:layout_marginTop="4dp"
+                android:text="Add page"
+                android:textStyle="bold" />
+        </LinearLayout>
+        <View
+            android:layout_width="80dp"
+            android:layout_height="0dp" />
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:orientation="vertical">
+            <ImageButton
+                android:layout_width="48dp"
+                android:layout_height="48dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:contentDescription="Поделиться"
+                android:scaleType="centerInside"
+                android:src="@drawable/email" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:fontFamily="@font/fonts"
+                android:gravity="center"
+                android:layout_marginTop="4dp"
+                android:text="Email"
+                android:textStyle="bold" />
+            <View
+                android:layout_width="80dp"
+                android:layout_height="0dp" />
+        </LinearLayout>
+        <Button
+            android:id="@+id/btnSave"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Сохранить" />
+    </LinearLayout>
+    <Button
+        android:id="@+id/button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:backgroundTint="#7789FF"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:text="Сonfirm saving" />
+</LinearLayout>
+
+
+

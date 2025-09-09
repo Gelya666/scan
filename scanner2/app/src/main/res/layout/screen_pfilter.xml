@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/pfilter"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+   >
+
+    <View
+        android:id="@+id/view"
+        android:layout_width="412dp"
+        android:layout_height="218dp"
+        android:background="@drawable/rectangle_shape"
+        android:radius="0dp"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+    <View
+        android:id="@+id/view6"
+        android:layout_width="420dp"
+        android:layout_height="593dp"
+        android:layout_marginTop="132dp"
+        android:background="@drawable/rectangle_shape1"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.555"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <ImageView
+        android:id="@+id/image_photo"
+        android:layout_width="183dp"
+        android:layout_height="204dp"
+        android:layout_marginBottom="308dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:srcCompat="@drawable/photo_1" />
+
+    <Button
+        android:id="@+id/btnUndo"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:backgroundTint="#7789FF"
+        android:fontFamily="@font/fonts"
+        android:text="Undo"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.051"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/btnSave"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:backgroundTint="#7789FF"
+        android:fontFamily="@font/fonts"
+        android:text="Save"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.942"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/btnFind"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="40dp"
+        android:backgroundTint="#7789FF"
+        android:fontFamily="@font/fonts"
+        android:text="Find"
+        android:textSize="20sp"
+        android:textStyle="bold"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="0.498"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+    <LinearLayout
+        android:id="@+id/it1"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:padding="8dp"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toStartOf="@id/it2"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintHorizontal_chainStyle="spread">
+    <ImageButton
+        android:id="@+id/btn_add_page"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:src="@drawable/add_page"
+        android:contentDescription="Добавить страницу"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:scaleType="centerInside"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Add page"
+            android:fontFamily="@font/fonts"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:layout_marginTop="4dp"/>
+    </LinearLayout>
+    <LinearLayout
+        android:id="@+id/it2"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:padding="8dp"
+        app:layout_constraintBottom_toBottomOf="@id/it1"
+        app:layout_constraintEnd_toStartOf="@id/it3"
+        app:layout_constraintStart_toEndOf="@id/it1">
+        <ImageButton
+            android:id="@+id/btn_crop"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:src="@drawable/crop_big"
+            android:contentDescription="Обрезать"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:scaleType="centerInside"/>
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Сrop"
+            android:fontFamily="@font/fonts"
+            android:textSize="12sp"
+            android:textStyle="bold"
+            android:layout_marginTop="4dp"/>
+    </LinearLayout>
+    <LinearLayout
+        android:id="@+id/it3"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:padding="8dp"
+        app:layout_constraintBottom_toBottomOf="@id/it1"
+        app:layout_constraintEnd_toStartOf="@id/it4"
+        app:layout_constraintStart_toEndOf="@id/it2">
+
+    <ImageButton
+        android:id="@+id/btn_rotate"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:src="@drawable/rotate_small"
+        android:contentDescription="Перевернуть снимок"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:scaleType="centerInside"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Rotate"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        android:layout_marginTop="4dp"/>
+    </LinearLayout>
+    <LinearLayout
+        android:id="@+id/it4"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal"
+        android:padding="8dp"
+        app:layout_constraintBottom_toBottomOf="@id/it1"
+        app:layout_constraintStart_toEndOf="@id/it3"
+        app:layout_constraintEnd_toEndOf="parent">
+    <ImageButton
+        android:id="@+id/btn_filter"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:src="@drawable/filter"
+        android:contentDescription="Фильтры"
+        android:background="?attr/selectableItemBackgroundBorderless"
+        android:scaleType="centerInside"/>
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Filters"
+        android:textSize="12sp"
+        android:textStyle="bold"
+        android:layout_marginTop="4dp"/>
+</LinearLayout>
+
+
+
+</androidx.constraintlayout.widget.ConstraintLayout>
