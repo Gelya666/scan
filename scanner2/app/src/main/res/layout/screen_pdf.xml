@@ -16,17 +16,18 @@
         app:layout_constraintTop_toTopOf="parent" />
 
     <View
-        android:id="@+id/view6"
+        android:id="@+id/view_download"
         android:layout_width="420dp"
         android:layout_height="593dp"
-        android:layout_marginTop="128dp"
+        android:layout_marginTop="120dp"
         android:background="@drawable/rectangle_shape1"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.555"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
     <View
-        android:id="@+id/view2"
+        android:id="@+id/vview_background"
         android:layout_width="394dp"
         android:layout_height="95dp"
         android:layout_marginTop="160dp"
@@ -36,27 +37,29 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <ImageView
+    <ImageButton
         android:id="@+id/points"
         android:layout_width="46dp"
         android:layout_height="28dp"
-        android:layout_marginTop="204dp"
+        android:layout_marginTop="188dp"
+        android:scaleType="centerCrop"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.75"
+        app:layout_constraintHorizontal_bias="0.956"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/_points" />
+        app:srcCompat="@drawable/points_small" />
 
     <ImageView
         android:id="@+id/download"
         android:layout_width="46dp"
         android:layout_height="28dp"
-        android:layout_marginTop="204dp"
+        android:layout_marginTop="188dp"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.904"
+        app:layout_constraintHorizontal_bias="0.83"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:srcCompat="@drawable/download" />
+
     <ImageView
         android:id="@+id/picture"
         android:layout_width="109dp"
@@ -89,148 +92,82 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.27"
         app:layout_constraintStart_toStartOf="parent" />
-
     <LinearLayout
-        android:id="@+id/item1"
-        android:layout_width="wrap_content"
+        android:id="@+id/btn_home_item"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:gravity="center_horizontal"
-        android:padding="8dp"
+        android:gravity="center"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/item2"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintHorizontal_chainStyle="spread">
-
-
-    <ImageButton
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:src="@drawable/home_grey"
-        android:contentDescription="Открыть дом"
-        android:background="?attr/selectableItemBackgroundBorderless"
-        android:scaleType="centerInside"/>
+        app:layout_constraintEnd_toStartOf="@+id/btn_camera"
+        app:layout_constraintWidth_percent="0.33">
+        <ImageButton
+            android:id="@+id/btn_home"
+            android:layout_width="100dp"
+            android:layout_height="48dp"
+            android:background="@drawable/circle_back"
+            android:src="@drawable/home"
+            android:contentDescription="Иконка 1" />
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Home"
+            android:textColor="#B6B7B8"
             android:fontFamily="@font/fonts"
-            android:textColor="#B6B7B8"
-            android:textSize="12sp"
             android:textStyle="bold"
-            android:layout_marginTop="4dp"/>
+            android:textAlignment="center" />
     </LinearLayout>
     <LinearLayout
-        android:id="@+id/item2"
-        android:layout_width="wrap_content"
+        android:id="@+id/btn_camera"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:gravity="center_horizontal"
-        android:padding="8dp"
-        app:layout_constraintBottom_toBottomOf="@id/item1"
-        app:layout_constraintEnd_toStartOf="@id/item3"
-        app:layout_constraintStart_toEndOf="@id/item1">
-        <ImageButton
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:src="@drawable/file"
-            android:contentDescription="Открыть файл"
-            android:scaleType="centerInside"/>
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="File"
-            android:textColor="#B6B7B8"
-            android:textSize="12sp"
-            android:textStyle="bold"
-            android:layout_marginTop="4dp"/>
-    </LinearLayout>
-    <LinearLayout
-        android:id="@+id/item3"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="center_horizontal"
-        android:padding="8dp"
-        app:layout_constraintBottom_toBottomOf="@id/item1"
-        app:layout_constraintEnd_toStartOf="@id/item4"
-        app:layout_constraintStart_toEndOf="@id/item2">
+        android:gravity="center"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@id/btn_home_item"
+        app:layout_constraintEnd_toStartOf="@+id/btn_pdf_item"
+        app:layout_constraintWidth_percent="0.33">
 
         <ImageButton
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:id="@+id/btnOpenCamera"
+            android:layout_width="70dp"
+            android:layout_height="70dp"
             android:src="@drawable/icon_with_badge"
-            android:contentDescription="Открыть камеру"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:scaleType="centerInside"/>
+            android:contentDescription="Иконка 2" />
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text=""
-            android:textColor="#B6B7B8"
-            android:textSize="12sp"
-            android:textStyle="bold"
-            android:layout_marginTop="4dp"/>
+            android:textAlignment="center" />
     </LinearLayout>
     <LinearLayout
-        android:id="@+id/item4"
-        android:layout_width="wrap_content"
+        android:id="@+id/btn_pdf_item"
+        android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:orientation="vertical"
-        android:gravity="center_horizontal"
-        android:padding="8dp"
-        app:layout_constraintBottom_toBottomOf="@id/item1"
-        app:layout_constraintEnd_toStartOf="@id/item5"
-        app:layout_constraintStart_toEndOf="@id/item3">
+        android:gravity="center"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintStart_toEndOf="@id/btn_camera"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintWidth_percent="0.33">
         <ImageButton
-            android:layout_width="70dp"
+            android:id="@+id/btn_pdf"
+            android:layout_width="48dp"
             android:layout_height="48dp"
-            android:background="@drawable/circle_back"
-            android:src="@drawable/pdf_blue"
-            android:contentDescription="Открыть меню pdf-файла"
-            android:scaleType="centerInside"/>
-
+            android:src="@drawable/pdf_small"
+            android:contentDescription="Нажать на PDF файл" />
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="PDF"
-            android:textColor="#B6B7B8"
-            android:textSize="12sp"
+            android:fontFamily="@font/fonts"
             android:textStyle="bold"
-            android:layout_marginTop="4dp"/>
+            android:textColor="#B6B7B8"
+            android:textAlignment="center"/>
     </LinearLayout>
-    <LinearLayout
-        android:id="@+id/item5"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:gravity="center_horizontal"
-        android:padding="8dp"
-        app:layout_constraintBottom_toBottomOf="@id/item1"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toEndOf="@id/item4">
-
-        <ImageButton
-            android:layout_width="48dp"
-            android:layout_height="48dp"
-            android:src="@drawable/collection"
-            android:contentDescription="Открыть меню коллекции"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:scaleType="centerInside"/>
-
         <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Collection"
-            android:textColor="#B6B7B8"
-            android:textSize="12sp"
-            android:textStyle="bold"
-            android:layout_marginTop="4dp"/>
-    </LinearLayout>
-
-    <TextView
-        android:id="@+id/textView2"
+        android:id="@+id/textPDF"
         android:layout_width="54dp"
         android:layout_height="31dp"
         android:layout_marginTop="52dp"

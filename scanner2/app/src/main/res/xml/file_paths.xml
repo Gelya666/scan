@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<file_paths xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- Доступ к внутреннему кэш-каталогу приложения -->
+    <cache-path name="internal_cache" path="/" />
+
+    <!-- Доступ к внешнему кэш-каталогу приложения -->
+    <external-cache-path name="external_cache" path="/" />
+
+    <!-- Доступ к файлам в папке files внутри внутренней памяти -->
+    <files-path name="internal_files" path="/" />
+
+    <!-- Доступ к файлам в папке files на внешней памяти -->
+    <external-files-path name="external_files" path="/" />
+
+    <!-- Доступ к общедоступным медиа-файлам -->
+    <external-media-path name="external_media" path="/" />
+</file_paths>
