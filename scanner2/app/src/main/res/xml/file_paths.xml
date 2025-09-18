@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<file_paths xmlns:android="http://schemas.android.com/apk/res/android">
+<paths xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- Доступ к внутреннему кэш-каталогу приложения -->
     <cache-path name="internal_cache" path="/" />
 
@@ -13,5 +13,18 @@
     <external-files-path name="external_files" path="/" />
 
     <!-- Доступ к общедоступным медиа-файлам -->
-    <external-media-path name="external_media" path="/" />
-</file_paths>
+    <external-files-path
+        name="my_images"
+        path="Pictures/" />
+
+    <!-- Для временных файлов в кэше -->
+    <cache-path
+        name="my_cache"
+        path="/" />
+
+    <!-- Дополнительно: для доступа к DCIM папке -->
+    <external-files-path
+        name="my_dcim"
+        path="DCIM/" />
+
+</paths>

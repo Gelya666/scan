@@ -15,7 +15,7 @@ import android.webkit.WebViewClient
 import android.widget.ProgressBar
 import java.io.File
 
-class screen_file : AppCompatActivity()
+class ScreenFileActivity : AppCompatActivity()
 
 {
     private lateinit var webView: WebView

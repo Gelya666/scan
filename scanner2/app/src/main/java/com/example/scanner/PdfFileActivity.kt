@@ -20,9 +20,10 @@ import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import java.io.File
 import kotlin.math.abs
-class pdf_file : AppCompatActivity() {
+
+class PdfFileActivity : AppCompatActivity() {
     private lateinit var pdfImageView: ImageView
-    private var progressBar: ProgressBar?=null
+    private var progressBar: ProgressBar? = null
     private lateinit var tvPageInfo: TextView
     private lateinit var tvFileName: TextView
     private lateinit var btnPrev: Button
@@ -33,6 +34,7 @@ class pdf_file : AppCompatActivity() {
     private var currentPageIndex = 0
     private var pageCount = 0
     private var pdfFile: File? = null
+
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -83,17 +85,17 @@ class pdf_file : AppCompatActivity() {
                 return false
             }
         })
-            btnPrev.setOnClickListener { showPage(currentPageIndex - 1) }
-            btnNext.setOnClickListener { showPage(currentPageIndex + 1) }
-            btnBack.setOnClickListener { finish() }
+        btnPrev.setOnClickListener { showPage(currentPageIndex - 1) }
+        btnNext.setOnClickListener { showPage(currentPageIndex + 1) }
+        btnBack.setOnClickListener { finish() }
     }
+
     private fun loadPdfDocument() {
         progressBar?.visibility = View.VISIBLE
         try {
             if (pdfFile?.exists() == true) {
                 val parcelFileDescriptor = ParcelFileDescriptor.open(
-                    pdfFile!!,
-                    ParcelFileDescriptor.MODE_READ_ONLY
+                    pdfFile!!, ParcelFileDescriptor.MODE_READ_ONLY
                 )
                 pdfRenderer = PdfRenderer(parcelFileDescriptor)
                 pageCount = pdfRenderer!!.pageCount
@@ -112,6 +114,7 @@ class pdf_file : AppCompatActivity() {
             progressBar?.visibility = View.GONE
         }
     }
+
     private fun updateUI() {
         tvPageInfo.text = "${currentPageIndex + 1}/$pageCount"
         btnPrev.isEnabled = currentPageIndex > 0
@@ -121,13 +124,16 @@ class pdf_file : AppCompatActivity() {
         btnPrev.setTextColor(if (btnPrev.isEnabled) colorEnabled else colorDisabled)
         btnNext.setTextColor(if (btnNext.isEnabled) colorEnabled else colorDisabled)
     }
+
     private fun showPage(pageIndex: Int) {
         if (pageIndex < 0 || pageIndex >= pageCount) return
         currentPage?.close()
         try {
             currentPage = pdfRenderer!!.openPage(pageIndex)
             currentPageIndex = pageIndex
-            val bitmap = Bitmap.createBitmap(currentPage!!.width, currentPage!!.height, Bitmap.Config.ARGB_8888)
+            val bitmap = Bitmap.createBitmap(
+                currentPage!!.width, currentPage!!.height, Bitmap.Config.ARGB_8888
+            )
             currentPage!!.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
             pdfImageView.setImageBitmap(bitmap)
             updateUI()
@@ -136,13 +142,15 @@ class pdf_file : AppCompatActivity() {
             Log.e("PDF_VIEWER", "Error showing page $pageIndex", e)
         }
     }
+
     override fun onDestroy() {
         super.onDestroy()
         currentPage?.close()
         pdfRenderer?.close()
         pdfFile?.delete()
     }
-    override fun onSupportNavigateUp():Boolean {
+
+    override fun onSupportNavigateUp(): Boolean {
         finish()
         return true
     }
