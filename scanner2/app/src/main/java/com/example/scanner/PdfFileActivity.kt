@@ -3,6 +3,7 @@ package com.example.scanner
 import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import android.graphics.pdf.PdfRenderer
+import android.net.Uri
 import android.os.Bundle
 import android.os.ParcelFileDescriptor
 import android.util.Log
@@ -52,7 +53,8 @@ class PdfFileActivity : AppCompatActivity() {
         btnPrev = findViewById(R.id.btnPrev)
         btnNext = findViewById(R.id.btnNext)
         btnBack = findViewById(R.id.btnBack)
-        val filePath = intent.getStringExtra("PDF_FILE_PATH")
+        val filePath = intent.extras?.getString("PDF_FILE_PATH")
+        Log.d("danil_logs", "onCreate: $filePath")
         if (filePath != null) {
             pdfFile = File(filePath)
             loadPdfDocument()

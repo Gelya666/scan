@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
+import android.os.Environment
 import android.provider.MediaStore
 import android.util.Log
 import android.widget.EditText
@@ -20,6 +21,7 @@ import androidx.core.content.FileProvider
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.scanner.databinding.ActivityMainBinding
+import kotlinx.coroutines.delay
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
@@ -44,6 +46,21 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
             readPdfFromUri(uri)
         }
     }
+
+    private var photoUri: Uri? = null
+
+    private val takePicture =
+        registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+            if (success) {
+                Log.d("CameraDebug", "Фото сохранено: $photoUri")
+                Toast.makeText(this, "Фото сделано", Toast.LENGTH_SHORT).show()
+                // тут можно открыть фото или отправить в ImageView
+            } else {
+                Log.e("CameraDebug", "Фото не сделано")
+                Toast.makeText(this, "Фото не сделано", Toast.LENGTH_SHORT).show()
+            }
+        }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -74,8 +91,6 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
             dialog.show(supportFragmentManager, "file_options_dialog")
         }
 
-        checkCameraApps()
-        openCameraWithFallback()
     }
 
     override fun onRequestPermissionsResult(
@@ -174,36 +189,20 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
     }
 
     private fun openCamera() {
-        Log.d("angelina", "Запуск openCamera()")
-        val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        Log.d("angelina", "есть ли камера")
-        if (takePictureIntent.resolveActivity(packageManager) == null) {
-            Log.e("CameraDebug", "Не найдено приложение для обработки intent")
-            Toast.makeText(this, "Камера недоступна на устройстве", Toast.LENGTH_SHORT).show()
-            return
-        }
-        val photoFile: File? = try {
-            createImageFile()
-        } catch (ex: IOException) {
-            Toast.makeText(this, "Ошибка создания файла", Toast.LENGTH_SHORT).show()
-            null
-        }
-        if (photoFile == null) {
-            Log.e("CameraDebug", "Файл не создан")
-            return
-        }
         try {
-            val photoURI: Uri =
-                FileProvider.getUriForFile(this, "${packageName}.fileprovider", photoFile)
-            takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
-            Log.d("CameraDebug", "Приложение для камеры найдено")
-            takePictureIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-            takePictureIntent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
-            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE)
-            Log.d("CameraDebug", "startActivityForResult вызван")
+            val photoFile = createImageFile()
+            photoUri = FileProvider.getUriForFile(
+                this,
+                "${packageName}.fileprovider",
+                photoFile
+            )
+            takePicture.launch(photoUri!!)
+        } catch (e: IOException) {
+            Log.e("CameraDebug", "Ошибка создания файла: ${e.message}")
+            Toast.makeText(this, "Ошибка создания файла", Toast.LENGTH_SHORT).show()
         } catch (e: Exception) {
-            Log.e("CameraDebug", "Ошибка FileProvider: ${e.message}")
-            Toast.makeText(this, "Ошибка настройки камеры", Toast.LENGTH_SHORT).show()
+            Log.e("CameraDebug", "Ошибка запуска камеры: ${e.message}")
+            Toast.makeText(this, "Ошибка запуска камеры", Toast.LENGTH_SHORT).show()
         }
     }
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -214,14 +213,12 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
             startActivity(intent)
         }
     }
+
     @Throws(IOException::class)
     private fun createImageFile(): File {
-        val timeStamp: String =
-            SimpleDateFormat("ууууMMdd-HHmmss", Locale.getDefault()).format(Date())
-        val storageDir: File? = getExternalFilesDir(null)
-        return File.createTempFile("JPEG,_${timeStamp}_", ".jpeg", storageDir).apply {
-            currentPhotoPath = absolutePath
-        }
+        val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+        val storageDir: File? = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
+        return File.createTempFile("JPEG_${timeStamp}_", ".jpg", storageDir)
     }
 
     fun openCameraWithFallback() {
@@ -286,7 +283,7 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
 
                 Log.d("PDF", "Saved to: ${file.absolutePath}")
                 val intent = Intent(this, PdfFileActivity::class.java).apply {
-                    putExtra("PDF_FILE_PATH", uri)
+                    putExtra("PDF_FILE_PATH", file.absolutePath)
                 }
                 startActivity(intent)
             } catch (e: Exception) {
