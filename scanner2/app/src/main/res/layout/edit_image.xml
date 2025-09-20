@@ -8,20 +8,6 @@
     android:id="@+id/image"
     android:padding="16dp">
 
-    <androidx.viewpager2.widget.ViewPager2
-        android:id="@+id/viewPager"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:layout_above="@+id/pageIndicator"
-          android:layout_alignParentTop="true" />
-
-    <me.relex.circleindicator.CircleIndicator3
-        android:id="@+id/pageIndicator"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_above="@+id/bottomControls"
-        android:layout_centerHorizontal="true"/>
 
 
     <ImageView

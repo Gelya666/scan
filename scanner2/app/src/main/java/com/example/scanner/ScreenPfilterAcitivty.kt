@@ -1,12 +1,16 @@
 package com.example.scanner
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.ColorMatrix
 import android.graphics.ColorMatrixColorFilter
+import android.net.Uri
 import android.os.Bundle
 import android.provider.MediaStore
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -17,12 +21,23 @@ import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
+import androidx.camera.core.CameraSelector
+import androidx.camera.core.ImageCapture
+import androidx.camera.core.ImageCaptureException
+import androidx.camera.core.Preview
+import androidx.camera.lifecycle.ProcessCameraProvider
+import androidx.camera.view.PreviewView
 import androidx.compose.ui.graphics.ImageBitmap
+import androidx.core.app.ActivityCompat
+import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
 import me.relex.circleindicator.CircleIndicator3
+import java.io.File
+import java.util.concurrent.ExecutorService
+import java.util.concurrent.Executors
 
 class ScreenPfilterAcitivty : AppCompatActivity() {
     private lateinit var btnRotate: ImageButton
@@ -37,16 +52,13 @@ class ScreenPfilterAcitivty : AppCompatActivity() {
     private var currentBitmap: Bitmap? = null
     private var rotationAngel = 0f
     private var isCropMode = false
-    private lateinit var viewPager: ViewPager2
-    private lateinit var pageIndicator: CircleIndicator3
-    private val bitmaps = mutableListOf<Bitmap>()
-    private var currentPage = 0
-    private lateinit var adapter: ImagePagerAdapter
-
+    private val requiredPermissions = arrayOf(Manifest.permission.CAMERA)
+    private lateinit var cameraExecutor: ExecutorService
+    private lateinit var viewFinder: PreviewView
     companion object {
-        const val REQUEST_IMAGE_CAPTURE = 101
+        private const val REQUEST_CODE_PERMISSIONS = 10
     }
-
+    private lateinit var imageCapture: ImageCapture
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -57,8 +69,6 @@ class ScreenPfilterAcitivty : AppCompatActivity() {
             v.setPadding(systemBars.left, systemBars.top, systemBars.right, systemBars.bottom)
             insets
         }
-        setupViewPager()
-        handleIntentData()
         btnRotate = findViewById(R.id.btn_rot)
         btnCrop = findViewById(R.id.btn_cr)
         btnFilter = findViewById(R.id.btn_fil)
@@ -68,8 +78,6 @@ class ScreenPfilterAcitivty : AppCompatActivity() {
         btnCropConfirm = findViewById(R.id.btnCropConfirm)
         btnCropCancel = findViewById(R.id.btnCropCancel)
         cropControls = findViewById(R.id.cropControls)
-        viewPager = findViewById(R.id.viewPager)
-        pageIndicator = findViewById(R.id.pageIndicator)
 
         //btnSave=findViewById(R.id.btnSave)
 
@@ -78,85 +86,101 @@ class ScreenPfilterAcitivty : AppCompatActivity() {
         btnRotate.setOnClickListener { rotateImage() }
         btnCrop.setOnClickListener { startCropMode() }
         btnFilter.setOnClickListener { applyFilter() }
-        btnAddpage.setOnClickListener { openCameraForNewPage() }
+        btnAddpage.setOnClickListener { }
         btnCropConfirm.setOnClickListener { confirmCrop() }
         btnCropCancel.setOnClickListener { cancelCrop() }
-        setupViewPager()
+        if (!hasPermissions()) {
+            // Запрашиваем разрешения, если их нет
+            ActivityCompat.requestPermissions(this, requiredPermissions, REQUEST_CODE_PERMISSIONS)
+        } else {
+            // Если разрешения есть, запускаем камеру
+            startCamera()
+        }
+        cameraExecutor = Executors.newSingleThreadExecutor()
+        btnAddpage.setOnClickListener { takePhoto() }
     }
-
-    private fun handleIntentData() {
-        val byteArray = intent.getByteArrayExtra("image_bites")
-        if (byteArray != null) {
-            val bitmap = BitmapFactory.decodeByteArray(byteArray, 0, byteArray.size)
-            bitmaps.add(bitmap)
-            adapter.notifyDataSetChanged()
-            pageIndicator.setViewPager(viewPager)
+    private fun hasPermissions(): Boolean {
+        return requiredPermissions.all { permission ->
+            ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED
         }
     }
+    private fun startCamera() {
+        val cameraProviderFuture = ProcessCameraProvider.getInstance(this)
+        cameraProviderFuture.addListener({
+            val cameraProvider: ProcessCameraProvider = cameraProviderFuture.get()
+            val preview = Preview.Builder()
+                .build()
+                .also {
+                    it.setSurfaceProvider(viewFinder.surfaceProvider)
+                }
+            val imageCapture = ImageCapture.Builder()
+                .setCaptureMode(ImageCapture.CAPTURE_MODE_MINIMIZE_LATENCY)
+                .build()
 
-    private fun setupViewPager() {
-        adapter = ImagePagerAdapter(bitmaps)
-        viewPager.adapter = adapter
-        pageIndicator.setViewPager(viewPager)
+
+            val cameraSelector = CameraSelector.DEFAULT_BACK_CAMERA
+
+            try {
+                // Unbind use cases before rebinding
+                cameraProvider.unbindAll()
+
+                // Bind use cases to camera
+                val camera = cameraProvider.bindToLifecycle(
+                    this, cameraSelector, preview, imageCapture
+                )
+
+            } catch (exc: Exception) {
+                Log.e("CameraX", "Use case binding failed", exc)
+            }
+
+        }, ContextCompat.getMainExecutor(this))
+
+    }
+    private fun takePhoto() {
+        // Получаем imageCapture из метода startCamera() (нужно будет его вынести в поле класса)
+        // val imageCapture = this.imageCapture ?: return
+
+        // Create time-stamped output file and metadata
+        val photoFile = File(
+            externalMediaDirs.firstOrNull(),
+            "${System.currentTimeMillis()}.jpg"
+        )
+
+        // Create output options object which contains file + metadata
+        val outputOptions = ImageCapture.OutputFileOptions.Builder(photoFile).build()
+       imageCapture.takePicture(
+            outputOptions,
+            ContextCompat.getMainExecutor(this),
+            object : ImageCapture.OnImageSavedCallback {
+                override fun onError(exc: ImageCaptureException) {
+                    Log.e("CameraX", "Photo capture failed: ${exc.message}", exc)
+                }
+
+                override fun onImageSaved(output: ImageCapture.OutputFileResults) {
+                    val savedUri = Uri.fromFile(photoFile)
+                    val msg = "Photo capture succeeded: $savedUri"
+                    Toast.makeText(baseContext, msg, Toast.LENGTH_SHORT).show()
+                    Log.d("CameraX", msg)
+                }
+            }
+        )
     }
 
 
-    private fun updateCurrentBitmap() {
-        currentBitmap = if (bitmaps.isNotEmpty() && currentPage < bitmaps.size) {
-            bitmaps[currentPage]
-        } else
-            null
-    }
 
+    // Обработчик ответа на запрос разрешений
     override fun onRequestPermissionsResult(
         requestCode: Int,
         permissions: Array<out String>,
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-
-    }
-
-
-    inner class ImagePagerAdapter(private val bitmaps: List<Bitmap>) :
-        RecyclerView.Adapter<ImagePagerAdapter.ViewHolder>() {
-        inner class ViewHolder(view: View) : RecyclerView.ViewHolder(view) {
-            val imageView: ImageView = view.findViewById(R.id.imageViewItem)
-        }
-
-        override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
-            val view = LayoutInflater.from(parent.context)
-                .inflate(R.layout.item_image, parent, false)
-            return ViewHolder(view)
-        }
-
-        override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-            holder.imageView.setImageBitmap(bitmaps[position])
-        }
-
-        override fun getItemCount(): Int = bitmaps.size
-
-    }
-
-    private fun openCameraForNewPage() {
-        val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
-        if (takePictureIntent.resolveActivity(packageManager) != null) {
-            startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE)
-        } else {
-            Toast.makeText(this, "Камера не доступна", Toast.LENGTH_SHORT).show()
-        }
-    }
-
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            val imageBitmap = data?.extras?.get("data") as? Bitmap
-            imageBitmap?.let {
-                bitmaps.add(it)
-                adapter.notifyItemInserted(bitmaps.size - 1)
-                pageIndicator.setViewPager(viewPager)
-                viewPager.setCurrentItem(bitmaps.size - 1,true)
-                Toast.makeText(this, "Страница добавлена!", Toast.LENGTH_SHORT).show()
+        if (requestCode == REQUEST_CODE_PERMISSIONS) {
+            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+                startCamera()
+            } else {
+                // Разрешение не дано, можно показать сообщение пользователю
+                Toast.makeText(this, "Разрешения не получены", Toast.LENGTH_SHORT).show()
             }
         }
     }
@@ -217,8 +241,10 @@ class ScreenPfilterAcitivty : AppCompatActivity() {
         exitCropMode()
     }
 
+
     override fun onDestroy() {
         super.onDestroy()
-        currentBitmap?.recycle()
+        cameraExecutor.shutdown()
+
     }
 }

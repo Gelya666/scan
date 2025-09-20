@@ -199,6 +199,7 @@
         app:layout_constraintEnd_toStartOf="@+id/btn_camera"
         app:layout_constraintWidth_percent="0.33">
         <ImageButton
+            android:id="@+id/btn_hOme"
             android:layout_width="100dp"
             android:layout_height="48dp"
             android:background="@drawable/circle_back"

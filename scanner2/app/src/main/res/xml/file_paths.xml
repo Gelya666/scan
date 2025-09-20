@@ -11,20 +11,4 @@
 
     <!-- Доступ к файлам в папке files на внешней памяти -->
     <external-files-path name="external_files" path="/" />
-
-    <!-- Доступ к общедоступным медиа-файлам -->
-    <external-files-path
-        name="my_images"
-        path="Pictures/" />
-
-    <!-- Для временных файлов в кэше -->
-    <cache-path
-        name="my_cache"
-        path="/" />
-
-    <!-- Дополнительно: для доступа к DCIM папке -->
-    <external-files-path
-        name="my_dcim"
-        path="DCIM/" />
-
 </paths>

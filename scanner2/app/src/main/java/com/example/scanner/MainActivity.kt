@@ -9,7 +9,6 @@ import android.provider.MediaStore
 import android.util.Log
 import android.widget.EditText
 import android.widget.ImageButton
-import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
@@ -26,17 +25,15 @@ import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-
-
 class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsListener {
 
-    private lateinit var btnOpenCamera: ImageButton
     private lateinit var binding: ActivityMainBinding
     private var currentPhotoPath: String = ""
+    private lateinit var cameraButton: ImageButton
 
     companion object {
         private const val REQUEST_CAMERA_PERMISSION = 100
-        private const val REQUEST_IMAGE_CAPTURE = 1002
+        private const val REQUEST_IMAGE_CAPTURE = 101
         const val EXTRA_PHOTO_PATHS = "photo_paths"
     }
 
@@ -44,11 +41,9 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
         ActivityResultContracts.OpenDocument()
     ) { uri: Uri? ->
         uri?.let {
-            // Файл выбран, открываем
             readPdfFromUri(uri)
         }
     }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -62,23 +57,26 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
         }
         Log.d("angelina", "запуск permsissons")
         binding.btnOpenCamera.setOnClickListener { checkCameraPermission() }
+        binding.btnHOme.setOnClickListener { val intent=Intent(this, ScreenPfilterAcitivty::class.java)
+            startActivity(intent)}
 
-        findViewById<LinearLayout>(R.id.btn_pdf_item).setOnClickListener {
+        binding.btnPdf.setOnClickListener {
             filePickerLauncher.launch(arrayOf("*/*"))
         }
 
-        findViewById<ImageButton>(R.id.points).setOnClickListener {
+        binding.points.setOnClickListener {
             val dialog = FileOptionsDialogFragment.newInstance("document.pdf")
             dialog.show(supportFragmentManager, "file_options_dialog")
         }
 
-        findViewById<ImageButton>(R.id.points_sec).setOnClickListener {
+        binding.points.setOnClickListener {
             val dialog = FileOptionsDialogFragment.newInstance("document.pdf")
             dialog.show(supportFragmentManager, "file_options_dialog")
         }
 
+        checkCameraApps()
+        openCameraWithFallback()
     }
-
 
     override fun onRequestPermissionsResult(
         requestCode: Int,
@@ -86,30 +84,46 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
         grantResults: IntArray
     ) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        Log.e("angel", "requestCode == REQUEST_CAMERA_PERMISSION")
+        Log.d("angel", "=== onRequestPermissionsResult ===")
+        Log.d("angel", "requestCode: $requestCode")
+        Log.d("angel", "REQUEST_CAMERA_PERMISSION: $REQUEST_CAMERA_PERMISSION")
         if (requestCode == REQUEST_CAMERA_PERMISSION) {
             Log.d("angel", "grantResults.isEmpty()${grantResults.joinToString()}")
-            if (grantResults.isEmpty()) {
-                Log.e("angel", "grantResults пустой!")
+            if (requestCode != REQUEST_CAMERA_PERMISSION) {
+                Log.d("angel", "Это не наш requestCode, игнорируем")
                 return
             }
+            Log.d("angel", "Обрабатываем запрос камеры")
+            Log.d("angel", "grantResults: ${grantResults.joinToString()}")
+            Log.d("angel", "grantResults.isEmpty(): ${grantResults.isEmpty()}")
 
-            // Детальная диагностика
+            if (grantResults.isEmpty()) {
+                Log.e("angel", "grantResults пустой! Возможно ошибка системы")
+            }
+
             permissions.forEachIndexed { index, permission ->
                 val result = grantResults.getOrNull(index)
                 val status = when (result) {
                     PackageManager.PERMISSION_GRANTED -> "✅ РАЗРЕШЕНО"
                     PackageManager.PERMISSION_DENIED -> "❌ ОТКЛОНЕНО"
+                    null -> "❓ NULL (нет результата)"
                     else -> "❓ НЕИЗВЕСТНО"
                 }
                 Log.d("angel", "$permission: $status")
             }
 
-            // Общая проверка
-            val allGranted = grantResults.all { it == PackageManager.PERMISSION_GRANTED }
+
+            val allGranted = if (grantResults.isEmpty()) {
+                Log.d("angel", "grantResults пустой, считаем что не все разрешены")
+                false
+            } else {
+
+                grantResults.all { it == PackageManager.PERMISSION_GRANTED }
+            }
             Log.d("angel", "Все разрешения получены: $allGranted")
 
             if (allGranted) {
+                Log.d("angel", "УСПЕХ: Открываем камеру")
                 openCamera()
             } else {
                 Toast.makeText(this, "Разрешение нет", Toast.LENGTH_SHORT).show()
@@ -118,11 +132,25 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
         }
     }
 
+    fun checkCameraApps() {
+        val intents = listOf(
+            Intent(MediaStore.ACTION_IMAGE_CAPTURE),
+            Intent(MediaStore.ACTION_VIDEO_CAPTURE),
+            Intent("android.media.action.STILL_IMAGE_CAMERA")
+        )
+        intents.forEachIndexed { index, intent ->
+            val activities = packageManager.queryIntentActivities(intent, 0)
+            Log.d("CameraDebug", "Intent $index: найдено ${activities.size} приложений")
+
+            activities.forEach { resolveInfo ->
+                Log.d("CameraDebug", " - ${resolveInfo.activityInfo.packageName}")
+            }
+        }
+    }
     private fun checkCameraPermission() {
         Log.d("angel", "проверить разрешение")
         val permissions = arrayOf(
-          Manifest.permission.CAMERA,
-            Manifest.permission.WRITE_EXTERNAL_STORAGE
+            Manifest.permission.CAMERA
         )
         Log.d("angel", "фильтр разрешений")
         val missingPermissions = permissions.filter { permission ->
@@ -144,9 +172,11 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
             openCamera()
         }
     }
+
     private fun openCamera() {
         Log.d("angelina", "Запуск openCamera()")
         val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
+        Log.d("angelina", "есть ли камера")
         if (takePictureIntent.resolveActivity(packageManager) == null) {
             Log.e("CameraDebug", "Не найдено приложение для обработки intent")
             Toast.makeText(this, "Камера недоступна на устройстве", Toast.LENGTH_SHORT).show()
@@ -162,100 +192,148 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
             Log.e("CameraDebug", "Файл не создан")
             return
         }
-
         try {
-            val photoURI: Uri = FileProvider.getUriForFile(this, "${packageName}.fileprovider", photoFile)
+            val photoURI: Uri =
+                FileProvider.getUriForFile(this, "${packageName}.fileprovider", photoFile)
             takePictureIntent.putExtra(MediaStore.EXTRA_OUTPUT, photoURI)
             Log.d("CameraDebug", "Приложение для камеры найдено")
             takePictureIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
             takePictureIntent.addFlags(Intent.FLAG_GRANT_WRITE_URI_PERMISSION)
             startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE)
             Log.d("CameraDebug", "startActivityForResult вызван")
-        }catch (e: Exception) {
+        } catch (e: Exception) {
             Log.e("CameraDebug", "Ошибка FileProvider: ${e.message}")
             Toast.makeText(this, "Ошибка настройки камеры", Toast.LENGTH_SHORT).show()
         }
     }
-        @Throws(IOException::class)
-        private fun createImageFile(): File {
-            val timeStamp: String =
-                SimpleDateFormat("ууууMMdd-HHmmss", Locale.getDefault()).format(Date())
-            val storageDir: File? = getExternalFilesDir(null)
-            return File.createTempFile("JPEG,_${timeStamp}_", ".jpeg", storageDir).apply {
-                currentPhotoPath = absolutePath
-            }
-        }
-
-
-        private fun readPdfFromUri(uri: Uri) {
-            val inputStream = contentResolver.openInputStream(uri)
-            inputStream?.use { stream ->
-                try {
-                    // You now have the raw PDF bytes
-                    val bytes = stream.readBytes()
-
-                    // Example: save to a local file if you want
-                    val file = File(cacheDir, "selected_${System.currentTimeMillis()}.pdf")
-                    file.outputStream().use { it.write(bytes) }
-
-                    Log.d("PDF", "Saved to: ${file.absolutePath}")
-                    val intent = Intent(this, PdfFileActivity::class.java).apply {
-                        putExtra("PDF_FILE_PATH", uri)
-                    }
-                    startActivity(intent)
-                } catch (e: Exception) {
-                    Toast.makeText(this, "Ошибка обработки PDF: ${e.message}", Toast.LENGTH_SHORT)
-                        .show()
-                    Log.e("PDF", "Error processing PDF", e)
-                }
-            }
-        }
-
-        override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-            super.onActivityResult(requestCode, resultCode, data)
-            if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-                val intent = Intent(this, ScreenPfilterAcitivty::class.java)
-                intent.putExtra(EXTRA_PHOTO_PATHS, arrayOf(currentPhotoPath))
-                startActivity(intent)
-            }
-        }
-
-        override fun onHide(filename: String) {
-            Toast.makeText(this, "Файл скрыт:$filename", Toast.LENGTH_SHORT).show()
-        }
-
-        override fun onDownload(filename: String) {
-            Toast.makeText(this, "Файл сохранен:$filename", Toast.LENGTH_SHORT).show()
-        }
-
-        override fun onDelete(filename: String) {
-            Toast.makeText(this, "Файл удален:$filename", Toast.LENGTH_SHORT).show()
-        }
-
-        override fun onReject(filename: String) {
-            Toast.makeText(this, "Файл отклонен:$filename", Toast.LENGTH_SHORT).show()
-        }
-
-        private fun showRenameDialog(filename: String) {
-            val builder = AlertDialog.Builder(this)
-            val view = layoutInflater.inflate(R.layout.dialog_rename, null)
-            val editText = view.findViewById<EditText>(R.id.rename_edittext)
-            editText.setText(filename)
-            builder.setView(view)
-                .setTitle("Переименовать")
-                .setPositiveButton("Сохранить") { dialog, _ ->
-                    val newName = editText.text.toString()
-                    Toast.makeText(this, "Переименован в:$filename", Toast.LENGTH_SHORT).show()
-                    dialog.dismiss()
-                }
-                .setNegativeButton("Отмена") { dialog, _ -> dialog.dismiss() }
-                .show()
-        }
-
-        override fun onRename(filename: String) {
-            showRenameDialog(filename)
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
+            val intent = Intent(this, ScreenPfilterAcitivty::class.java)
+            intent.putExtra(EXTRA_PHOTO_PATHS, arrayOf(currentPhotoPath))
+            startActivity(intent)
         }
     }
+    @Throws(IOException::class)
+    private fun createImageFile(): File {
+        val timeStamp: String =
+            SimpleDateFormat("ууууMMdd-HHmmss", Locale.getDefault()).format(Date())
+        val storageDir: File? = getExternalFilesDir(null)
+        return File.createTempFile("JPEG,_${timeStamp}_", ".jpeg", storageDir).apply {
+            currentPhotoPath = absolutePath
+        }
+    }
+
+    fun openCameraWithFallback() {
+        val intents = listOf(
+            Intent(MediaStore.ACTION_IMAGE_CAPTURE),
+            Intent(MediaStore.ACTION_VIDEO_CAPTURE),
+            Intent("android.media.action.STILL_IMAGE_CAMERA")
+        )
+
+        var intentFound = false
+
+        for (intent in intents) {
+            if (intent.resolveActivity(packageManager) != null) {
+                startActivityForResult(intent, REQUEST_IMAGE_CAPTURE)
+                intentFound = true
+                break
+            }
+        }
+
+        if (!intentFound) {
+            showNoCameraDialog()
+        }
+    }
+
+    private fun showNoCameraDialog() {
+        AlertDialog.Builder(this)
+            .setTitle("Камера не найдена")
+            .setMessage("Установите приложение камеры из Play Маркет")
+            .setPositiveButton("Установить") { _, _ ->
+                openPlayStoreForCamera()
+            }
+            .setNegativeButton("Отмена", null)
+            .show()
+    }
+
+    private fun openPlayStoreForCamera() {
+        try {
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                data = Uri.parse("market://details?id=com.android.camera")
+                setPackage("com.android.vending")
+            }
+            startActivity(intent)
+        } catch (e: Exception) {
+            val intent = Intent(Intent.ACTION_VIEW).apply {
+                data = Uri.parse("https://play.google.com/store/search?q=camera")
+            }
+            startActivity(intent)
+        }
+    }
+
+
+    private fun readPdfFromUri(uri: Uri) {
+        val inputStream = contentResolver.openInputStream(uri)
+        inputStream?.use { stream ->
+            try {
+                // You now have the raw PDF bytes
+                val bytes = stream.readBytes()
+
+                // Example: save to a local file if you want
+                val file = File(cacheDir, "selected_${System.currentTimeMillis()}.pdf")
+                file.outputStream().use { it.write(bytes) }
+
+                Log.d("PDF", "Saved to: ${file.absolutePath}")
+                val intent = Intent(this, PdfFileActivity::class.java).apply {
+                    putExtra("PDF_FILE_PATH", uri)
+                }
+                startActivity(intent)
+            } catch (e: Exception) {
+                Toast.makeText(this, "Ошибка обработки PDF: ${e.message}", Toast.LENGTH_SHORT)
+                    .show()
+                Log.e("PDF", "Error processing PDF", e)
+            }
+        }
+    }
+
+
+    override fun onHide(filename: String) {
+        Toast.makeText(this, "Файл скрыт:$filename", Toast.LENGTH_SHORT).show()
+    }
+
+    override fun onDownload(filename: String) {
+        Toast.makeText(this, "Файл сохранен:$filename", Toast.LENGTH_SHORT).show()
+    }
+
+    override fun onDelete(filename: String) {
+        Toast.makeText(this, "Файл удален:$filename", Toast.LENGTH_SHORT).show()
+    }
+
+    override fun onReject(filename: String) {
+        Toast.makeText(this, "Файл отклонен:$filename", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun showRenameDialog(filename: String) {
+        val builder = AlertDialog.Builder(this)
+        val view = layoutInflater.inflate(R.layout.dialog_rename, null)
+        val editText = view.findViewById<EditText>(R.id.rename_edittext)
+        editText.setText(filename)
+        builder.setView(view)
+            .setTitle("Переименовать")
+            .setPositiveButton("Сохранить") { dialog, _ ->
+                val newName = editText.text.toString()
+                Toast.makeText(this, "Переименован в:$filename", Toast.LENGTH_SHORT).show()
+                dialog.dismiss()
+            }
+            .setNegativeButton("Отмена") { dialog, _ -> dialog.dismiss() }
+            .show()
+    }
+
+    override fun onRename(filename: String) {
+        showRenameDialog(filename)
+    }
+}
 
 
 
