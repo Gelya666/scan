@@ -21,12 +21,12 @@ import androidx.core.content.FileProvider
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.scanner.databinding.ActivityMainBinding
-import kotlinx.coroutines.delay
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+
 class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsListener {
 
     private lateinit var binding: ActivityMainBinding
@@ -74,8 +74,10 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
         }
         Log.d("angelina", "запуск permsissons")
         binding.btnOpenCamera.setOnClickListener { checkCameraPermission() }
-        binding.btnHOme.setOnClickListener { val intent=Intent(this, ScreenPfilterAcitivty::class.java)
-            startActivity(intent)}
+        binding.btnHOme.setOnClickListener {
+            val intent = Intent(this, ScreenPfilterAcitivty::class.java)
+            startActivity(intent)
+        }
 
         binding.btnPdf.setOnClickListener {
             filePickerLauncher.launch(arrayOf("*/*"))
@@ -147,21 +149,6 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
         }
     }
 
-    fun checkCameraApps() {
-        val intents = listOf(
-            Intent(MediaStore.ACTION_IMAGE_CAPTURE),
-            Intent(MediaStore.ACTION_VIDEO_CAPTURE),
-            Intent("android.media.action.STILL_IMAGE_CAMERA")
-        )
-        intents.forEachIndexed { index, intent ->
-            val activities = packageManager.queryIntentActivities(intent, 0)
-            Log.d("CameraDebug", "Intent $index: найдено ${activities.size} приложений")
-
-            activities.forEach { resolveInfo ->
-                Log.d("CameraDebug", " - ${resolveInfo.activityInfo.packageName}")
-            }
-        }
-    }
     private fun checkCameraPermission() {
         Log.d("angel", "проверить разрешение")
         val permissions = arrayOf(
@@ -205,6 +192,7 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
             Toast.makeText(this, "Ошибка запуска камеры", Toast.LENGTH_SHORT).show()
         }
     }
+
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
         if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
@@ -213,62 +201,13 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
             startActivity(intent)
         }
     }
-
     @Throws(IOException::class)
     private fun createImageFile(): File {
-        val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+        val timeStamp: String =
+            SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
         val storageDir: File? = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
         return File.createTempFile("JPEG_${timeStamp}_", ".jpg", storageDir)
     }
-
-    fun openCameraWithFallback() {
-        val intents = listOf(
-            Intent(MediaStore.ACTION_IMAGE_CAPTURE),
-            Intent(MediaStore.ACTION_VIDEO_CAPTURE),
-            Intent("android.media.action.STILL_IMAGE_CAMERA")
-        )
-
-        var intentFound = false
-
-        for (intent in intents) {
-            if (intent.resolveActivity(packageManager) != null) {
-                startActivityForResult(intent, REQUEST_IMAGE_CAPTURE)
-                intentFound = true
-                break
-            }
-        }
-
-        if (!intentFound) {
-            showNoCameraDialog()
-        }
-    }
-
-    private fun showNoCameraDialog() {
-        AlertDialog.Builder(this)
-            .setTitle("Камера не найдена")
-            .setMessage("Установите приложение камеры из Play Маркет")
-            .setPositiveButton("Установить") { _, _ ->
-                openPlayStoreForCamera()
-            }
-            .setNegativeButton("Отмена", null)
-            .show()
-    }
-
-    private fun openPlayStoreForCamera() {
-        try {
-            val intent = Intent(Intent.ACTION_VIEW).apply {
-                data = Uri.parse("market://details?id=com.android.camera")
-                setPackage("com.android.vending")
-            }
-            startActivity(intent)
-        } catch (e: Exception) {
-            val intent = Intent(Intent.ACTION_VIEW).apply {
-                data = Uri.parse("https://play.google.com/store/search?q=camera")
-            }
-            startActivity(intent)
-        }
-    }
-
 
     private fun readPdfFromUri(uri: Uri) {
         val inputStream = contentResolver.openInputStream(uri)
