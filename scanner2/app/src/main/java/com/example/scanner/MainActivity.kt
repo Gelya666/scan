@@ -6,7 +6,6 @@ import android.content.pm.PackageManager
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
-import android.provider.MediaStore
 import android.util.Log
 import android.widget.EditText
 import android.widget.ImageButton
@@ -37,6 +36,7 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
         private const val REQUEST_CAMERA_PERMISSION = 100
         private const val REQUEST_IMAGE_CAPTURE = 101
         const val EXTRA_PHOTO_PATHS = "photo_paths"
+        private val allPhotoPaths = mutableListOf<String>()
     }
 
     val filePickerLauncher = registerForActivityResult(
@@ -52,9 +52,10 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
     private val takePicture =
         registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
             if (success) {
+                allPhotoPaths.add(currentPhotoPath)
                 Log.d("CameraDebug", "Фото сохранено: $photoUri")
                 Toast.makeText(this, "Фото сделано", Toast.LENGTH_SHORT).show()
-                // тут можно открыть фото или отправить в ImageView
+                goToPhotoViewPagerActivity()
             } else {
                 Log.e("CameraDebug", "Фото не сделано")
                 Toast.makeText(this, "Фото не сделано", Toast.LENGTH_SHORT).show()
@@ -178,6 +179,7 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
     private fun openCamera() {
         try {
             val photoFile = createImageFile()
+            currentPhotoPath = photoFile.absolutePath
             photoUri = FileProvider.getUriForFile(
                 this,
                 "${packageName}.fileprovider",
@@ -193,20 +195,20 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
         }
     }
 
-    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
-        super.onActivityResult(requestCode, resultCode, data)
-        if (requestCode == REQUEST_IMAGE_CAPTURE && resultCode == RESULT_OK) {
-            val intent = Intent(this, ScreenPfilterAcitivty::class.java)
-            intent.putExtra(EXTRA_PHOTO_PATHS, arrayOf(currentPhotoPath))
-            startActivity(intent)
-        }
-    }
     @Throws(IOException::class)
     private fun createImageFile(): File {
         val timeStamp: String =
             SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
         val storageDir: File? = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
         return File.createTempFile("JPEG_${timeStamp}_", ".jpg", storageDir)
+    }
+
+    private fun goToPhotoViewPagerActivity() {
+        val intent = Intent(this, PhotoViewPagerActivity::class.java).apply {
+            putStringArrayListExtra("photo_paths", ArrayList(allPhotoPaths))
+            putExtra("current_position", allPhotoPaths.size - 1)
+        }
+        startActivity(intent)
     }
 
     private fun readPdfFromUri(uri: Uri) {
