@@ -19,7 +19,7 @@ class PhotoViewPagerActivity : AppCompatActivity() {
     private lateinit var viewPager: ViewPager2
     private lateinit var btnBack: Button
     private lateinit var btnCrop: ImageButton
-    private lateinit var btnSave:Button
+    private lateinit var btnSave: Button
 
     private lateinit var photoPaths: ArrayList<String>
     private var currentPosition: Int = 0
@@ -42,17 +42,18 @@ class PhotoViewPagerActivity : AppCompatActivity() {
     private fun initViews() {
         viewPager = findViewById(R.id.viewPager)
         btnBack = findViewById(R.id.btnUndo)
-        btnCrop=findViewById(R.id.btn_crop)
+        btnCrop = findViewById(R.id.btn_crop)
+        btnSave=findViewById(R.id.btnSave)
     }
 
     private fun setupViewPager() {
-        adapter=PhotoAdapter(photoPaths,false)
-        viewPager.adapter=adapter
-        viewPager.setCurrentItem(currentPosition,false)
-        viewPager.registerOnPageChangeCallback(object:ViewPager2.OnPageChangeCallback(){
+        adapter = PhotoAdapter(photoPaths, false)
+        viewPager.adapter = adapter
+        viewPager.setCurrentItem(currentPosition, false)
+        viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
-              currentPosition = position
-                if(isCropMode){
+                currentPosition = position
+                if (isCropMode) {
                     exitCropMode()
                 }
             }
@@ -82,9 +83,7 @@ class PhotoViewPagerActivity : AppCompatActivity() {
     private fun enterCropMode() {
         isCropMode = true
         adapter.setCropMode(true)
-        //btnCrop.text = "Применить"
-        btnBack.text = "Отмена"
-        // Блокируем перелистывание в режиме обрезки
+        btnBack.text = "Undo"
         viewPager.isUserInputEnabled = false
     }
 
@@ -99,20 +98,22 @@ class PhotoViewPagerActivity : AppCompatActivity() {
     private fun performCrop() {
         try {
             val currentPhotoPath = photoPaths[currentPosition]
-
-            // Получаем текущий ViewHolder для доступа к cropOverlay
             val recyclerView = viewPager.getChildAt(0) as? RecyclerView
-            val currentViewHolder =
-                recyclerView?.findViewHolderForAdapterPosition(currentPosition) as? PhotoAdapter.PhotoViewHolder
+            val currentViewHolder = recyclerView?.findViewHolderForAdapterPosition(currentPosition) as? PhotoAdapter.PhotoViewHolder
 
             currentViewHolder?.let { holder ->
-                // Получаем область обрезки из overlay
+                // Получаем область обрезки из улучшенного overlay
                 val cropRect = holder.cropOverlay.getCropRect()
+
+                if (cropRect.width() <= 0 || cropRect.height() <= 0) {
+                    Toast.makeText(this, "Выберите область для обрезки", Toast.LENGTH_SHORT).show()
+                    return
+                }
 
                 // Загружаем оригинальное изображение
                 val originalBitmap = BitmapFactory.decodeFile(currentPhotoPath)
 
-                // Масштабируем координаты обрезки под размер изображения
+                // Масштабируем координаты обрезки
                 val scaleX = originalBitmap.width.toFloat() / holder.cropOverlay.width
                 val scaleY = originalBitmap.height.toFloat() / holder.cropOverlay.height
 
@@ -123,7 +124,7 @@ class PhotoViewPagerActivity : AppCompatActivity() {
                     (cropRect.bottom * scaleY).toInt()
                 )
 
-                // Проверяем, чтобы область обрезки была в пределах изображения
+                // Проверяем границы
                 val safeCropRect = Rect(
                     scaledCropRect.left.coerceIn(0, originalBitmap.width),
                     scaledCropRect.top.coerceIn(0, originalBitmap.height),
@@ -140,10 +141,8 @@ class PhotoViewPagerActivity : AppCompatActivity() {
                     safeCropRect.height()
                 )
 
-                // Сохраняем обрезанное изображение
+                // Сохраняем
                 saveCroppedImage(croppedBitmap, currentPhotoPath)
-
-                // Освобождаем память
                 originalBitmap.recycle()
 
                 Toast.makeText(this, "Фото обрезано!", Toast.LENGTH_SHORT).show()
@@ -158,7 +157,6 @@ class PhotoViewPagerActivity : AppCompatActivity() {
             Toast.makeText(this, "Ошибка обрезки: ${e.message}", Toast.LENGTH_SHORT).show()
         }
     }
-
     private fun saveCroppedImage(bitmap: Bitmap, filePath: String) {
         try {
             val file = File(filePath)

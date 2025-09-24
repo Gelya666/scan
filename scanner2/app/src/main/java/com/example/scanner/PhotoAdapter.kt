@@ -14,8 +14,8 @@ class PhotoAdapter(
 
     // Внутренний класс для хранения View
     inner class PhotoViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
-        val imageView: ImageView = itemView.findViewById(R.id.imageView)
-        val cropOverlay: SimpleCropOverlayView = itemView.findViewById(R.id.cropOverlay)
+        val imageView: ImageView = itemView.findViewById(R.id.photoImageView)
+        val cropOverlay:SimpleCropOverlayView = itemView.findViewById(R.id.cropOverlay)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PhotoViewHolder {
