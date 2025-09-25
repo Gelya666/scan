@@ -40,6 +40,7 @@ android {
 
 dependencies {
     val camerax_version = "1.5.0"
+    implementation("jp.co.cyberagent.android:gpuimage:2.1.0")
     implementation("androidx.camera:camera-core:${camerax_version}")
     implementation("androidx.camera:camera-camera2:${camerax_version}")
     implementation("androidx.camera:camera-lifecycle:${camerax_version}")

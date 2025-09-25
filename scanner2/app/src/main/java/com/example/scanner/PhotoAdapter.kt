@@ -8,7 +8,7 @@ import android.widget.ImageView
 import androidx.recyclerview.widget.RecyclerView
 
 class PhotoAdapter(
-    private val photoPaths: List<String>,
+    private var photoPaths: List<String>,
     private var isCropMode: Boolean = false
 ) : RecyclerView.Adapter<PhotoAdapter.PhotoViewHolder>() {
 
@@ -44,6 +44,10 @@ class PhotoAdapter(
     fun setCropMode(enabled: Boolean) {
         isCropMode = enabled
         notifyDataSetChanged() // Обновляем все элементы
+    }
+    fun updateData(newPhotoPath: List<String>) {
+        this.photoPaths = newPhotoPath
+        notifyDataSetChanged()
     }
 }
 
