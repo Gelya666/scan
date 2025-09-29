@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/filterpanell"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
@@ -7,7 +8,7 @@
 
     <!-- Панель интенсивности -->
     <LinearLayout
-        android:id="@+id/intensity_Panel"
+        android:id="@+id/intensity_Panel1"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
@@ -22,7 +23,7 @@
             android:layout_gravity="center_vertical" />
 
         <SeekBar
-            android:id="@+id/intensity_SeekBar"
+            android:id="@+id/intensity_SeekBar1"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_weight="1"
@@ -31,7 +32,7 @@
             android:progress="50" />
 
         <TextView
-            android:id="@+id/intensity_Value"
+            android:id="@+id/intensity_Value1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="50%"
@@ -46,7 +47,7 @@
         android:layout_height="wrap_content">
 
         <LinearLayout
-            android:id="@+id/filters_Container"
+            android:id="@+id/filters_Container1"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:orientation="horizontal"

@@ -32,6 +32,7 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
     private var currentPhotoPath: String = ""
     private lateinit var cameraButton: ImageButton
 
+
     companion object {
         private const val REQUEST_CAMERA_PERMISSION = 100
         private const val REQUEST_IMAGE_CAPTURE = 101

@@ -1,6 +1,7 @@
 package com.example.scanner
 
 import android.Manifest
+import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -8,8 +9,13 @@ import android.graphics.Rect
 import android.os.Bundle
 import android.os.Environment
 import android.util.Log
+import android.view.View
 import android.widget.Button
 import android.widget.ImageButton
+import android.widget.ImageView
+import android.widget.LinearLayout
+import android.widget.SeekBar
+import android.widget.TextView
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
@@ -17,11 +23,17 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import java.io.File
 import java.io.FileOutputStream
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+
+
 
 class PhotoViewPagerActivity : AppCompatActivity() {
 
@@ -31,8 +43,16 @@ class PhotoViewPagerActivity : AppCompatActivity() {
     private lateinit var btnSave: Button
     private lateinit var btnAddPage: ImageButton
     private lateinit var photoPaths: ArrayList<String>
+    private lateinit var btnFilters:ImageButton
+    private lateinit var filtersContainer: LinearLayout
+
+    private lateinit var filterPanel: LinearLayout
+    private lateinit var intensityPanel: LinearLayout
+    private lateinit var intensitySeekBar: SeekBar
+    private lateinit var intensityValue: TextView
     private var currentPosition: Int = 0
     private var isCropMode = false
+    private var isFilterMode = false
     private lateinit var adapter: PhotoAdapter
     private var currentPhotoFile: File? = null
 
@@ -72,10 +92,10 @@ class PhotoViewPagerActivity : AppCompatActivity() {
         // Получаем данные из CameraActivity
         photoPaths = intent.getStringArrayListExtra("photo_paths") ?: ArrayList()
         currentPosition = intent.getIntExtra("current_position", 0)
-
         initViews()
         setupViewPager()
         setupButtons()
+        setupFilterPanel()
         btnAddPage.setOnClickListener {
             if (isCropMode) {
                 exitCropMode()
@@ -90,10 +110,100 @@ class PhotoViewPagerActivity : AppCompatActivity() {
         btnCrop = findViewById(R.id.btn_crop)
         btnSave = findViewById(R.id.btnSave)
         btnAddPage = findViewById(R.id.btn_add_page)
+        btnFilters = findViewById(R.id.btn_filter) // Инициализация кнопки фильтров
+       // filterPanel = findViewById(R.id.filterpanel)
+      //  intensityPanel = findViewById(R.id.intensity_Panel)
+        intensitySeekBar = findViewById(R.id.intensity_SeekBar)
+        intensityValue = findViewById(R.id.intensity_Value)
+        filtersContainer = findViewById(R.id.filters_Container)
+    }
+    private fun setupFilterPanel() {
+        val filters = PhotoFilters.getAllFilters()
+
+        filters.forEach { filterItem ->
+            val filterView = layoutInflater.inflate(R.layout.item_filter, filtersContainer, false)
+            val filterIcon: ImageView = filterView.findViewById(R.id.filterIcon)
+            val filterName: TextView = filterView.findViewById(R.id.filterName)
+
+            // Загружаем превью с фильтром
+            loadFilterPreview(filterIcon, filterItem.type)
+            filterName.text = filterItem.name
+
+            filterView.setOnClickListener {
+                applyFilterToCurrentPhoto(filterItem.type)
+               // updateIntensityPanelVisibility(filterItem.type)
+            }
+
+            filtersContainer.addView(filterView)
+        }
+
+        intensitySeekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                if (fromUser) {
+                    val intensity = progress / 100f
+                    intensityValue.text = "${progress}%"
+                    applyFilterWithIntensity(intensity)
+                }
+            }
+
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+        })
+    }
+    private fun loadFilterPreview(imageView: ImageView, filterType: PhotoFilters.FilterType) {
+        // Загрузка превью для фильтра (можно использовать первое фото или стандартную картинку)
+        if (photoPaths.isNotEmpty()) {
+            CoroutineScope(Dispatchers.IO).launch {
+                try {
+                    val options = BitmapFactory.Options().apply {
+                        inSampleSize = 4 // Маленькое превью
+                    }
+                    val bitmap = BitmapFactory.decodeFile(photoPaths[0], options)
+                    val previewBitmap = PhotoFilters.applyFilter(this@PhotoViewPagerActivity,bitmap, filterType, 0.7f)
+
+                    withContext(Dispatchers.Main) {
+                        imageView.setImageBitmap(previewBitmap)
+                    }
+                    bitmap.recycle()
+                } catch (e: Exception) {
+                    Log.e("FilterPreview", "Error loading preview: ${e.message}")
+                }
+            }
+        }
     }
 
+    private fun applyFilterToCurrentPhoto(filterType: PhotoFilters.FilterType) {
+        val currentIntensity = intensitySeekBar.progress / 100f
+        adapter.setFilterForPosition(currentPosition, filterType, currentIntensity)
+    }
+
+    private fun applyFilterWithIntensity(intensity: Float) {
+        val currentFilter = adapter.getCurrentPosition(currentPosition)
+        if (currentFilter != PhotoFilters.FilterType.NONE) {
+            adapter.setFilterForPosition(currentPosition, currentFilter, intensity)
+        }
+    }
+
+    //private fun updateIntensityPanelVisibility(filterType: PhotoFilters.FilterType) {
+        //val hasIntensity = when (filterType) {
+           // PhotoFilters.FilterType.SEPIA,
+           // PhotoFilters.FilterType.SATURATE,
+         //   PhotoFilters.FilterType.BRIGHTNESS,
+         //   PhotoFilters.FilterType.CONTRAST,
+         //   PhotoFilters.FilterType.BLUR,
+         //   PhotoFilters.FilterType.SHARPEN,
+         //   PhotoFilters.FilterType.EMBOSS,
+         //   PhotoFilters.FilterType.TOON,
+         //   PhotoFilters.FilterType.SWIRL -> true
+         //   else -> false
+       // }
+
+      //  intensityPanel.visibility = if (hasIntensity) View.VISIBLE else View.GONE
+   // }
+
+
     private fun setupViewPager() {
-        adapter = PhotoAdapter(photoPaths, false)
+        adapter = PhotoAdapter(this,photoPaths, false)
         viewPager.adapter = adapter
         viewPager.setCurrentItem(currentPosition, false)
         viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {

@@ -2,13 +2,23 @@ package com.example.scanner
 
 import android.content.Context
 import android.graphics.Bitmap
-import android.util.Log.e
-import jp.co.cyberagent.android.gpuimage.GPUImage
-import java.util.logging.Filter
-import android.graphics.Color
 import android.graphics.PointF
-
-import jp.co.cyberagent.android.gpuimage.filter.*
+import jp.co.cyberagent.android.gpuimage.GPUImage
+import jp.co.cyberagent.android.gpuimage.filter.GPUImageBrightnessFilter
+import jp.co.cyberagent.android.gpuimage.filter.GPUImageColorInvertFilter
+import jp.co.cyberagent.android.gpuimage.filter.GPUImageContrastFilter
+import jp.co.cyberagent.android.gpuimage.filter.GPUImageEmbossFilter
+import jp.co.cyberagent.android.gpuimage.filter.GPUImageFilter
+import jp.co.cyberagent.android.gpuimage.filter.GPUImageGaussianBlurFilter
+import jp.co.cyberagent.android.gpuimage.filter.GPUImageGrayscaleFilter
+import jp.co.cyberagent.android.gpuimage.filter.GPUImagePosterizeFilter
+import jp.co.cyberagent.android.gpuimage.filter.GPUImageSaturationFilter
+import jp.co.cyberagent.android.gpuimage.filter.GPUImageSepiaToneFilter
+import jp.co.cyberagent.android.gpuimage.filter.GPUImageSharpenFilter
+import jp.co.cyberagent.android.gpuimage.filter.GPUImageSketchFilter
+import jp.co.cyberagent.android.gpuimage.filter.GPUImageSwirlFilter
+import jp.co.cyberagent.android.gpuimage.filter.GPUImageToonFilter
+import jp.co.cyberagent.android.gpuimage.filter.GPUImageVignetteFilter
 
 object PhotoFilters {
     enum class FilterType {
@@ -29,7 +39,12 @@ object PhotoFilters {
         SWIRL
     }
 
-    fun applyFilter(context: Context, bitmap: Bitmap, filterType: FilterType, intensity: Float = 1.0F): Bitmap {
+    fun applyFilter(
+        context: Context,
+        bitmap: Bitmap,
+        filterType: FilterType,
+        intensity: Float = 1.0F
+    ): Bitmap {
         return try {
             val gpuImage = GPUImage(context).apply {
                 setImage(bitmap)
