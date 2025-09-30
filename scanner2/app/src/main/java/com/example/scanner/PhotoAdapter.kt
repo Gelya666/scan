@@ -56,6 +56,7 @@ class PhotoAdapter(
                     val options = BitmapFactory.Options().apply {
                         inSampleSize = 2
                     }
+                    //тут ошибка не все фильтры работают
                     val originalBitmap = BitmapFactory.decodeFile(photoPath, options)
                     val filteredBitmap = if (filterType != PhotoFilters.FilterType.NONE) {
                         PhotoFilters.applyFilter(this@PhotoAdapter.context, originalBitmap, filterType, intensity)

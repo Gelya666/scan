@@ -111,8 +111,8 @@ class PhotoViewPagerActivity : AppCompatActivity() {
         btnSave = findViewById(R.id.btnSave)
         btnAddPage = findViewById(R.id.btn_add_page)
         btnFilters = findViewById(R.id.btn_filter) // Инициализация кнопки фильтров
-       // filterPanel = findViewById(R.id.filterpanel)
-      //  intensityPanel = findViewById(R.id.intensity_Panel)
+        filterPanel = findViewById(R.id.filterpanel)
+        intensityPanel = findViewById(R.id.intensity_Panel)
         intensitySeekBar = findViewById(R.id.intensity_SeekBar)
         intensityValue = findViewById(R.id.intensity_Value)
         filtersContainer = findViewById(R.id.filters_Container)
@@ -131,7 +131,7 @@ class PhotoViewPagerActivity : AppCompatActivity() {
 
             filterView.setOnClickListener {
                 applyFilterToCurrentPhoto(filterItem.type)
-               // updateIntensityPanelVisibility(filterItem.type)
+                updateIntensityPanelVisibility(filterItem.type)
             }
 
             filtersContainer.addView(filterView)
@@ -184,22 +184,23 @@ class PhotoViewPagerActivity : AppCompatActivity() {
         }
     }
 
-    //private fun updateIntensityPanelVisibility(filterType: PhotoFilters.FilterType) {
-        //val hasIntensity = when (filterType) {
-           // PhotoFilters.FilterType.SEPIA,
-           // PhotoFilters.FilterType.SATURATE,
-         //   PhotoFilters.FilterType.BRIGHTNESS,
-         //   PhotoFilters.FilterType.CONTRAST,
-         //   PhotoFilters.FilterType.BLUR,
-         //   PhotoFilters.FilterType.SHARPEN,
-         //   PhotoFilters.FilterType.EMBOSS,
-         //   PhotoFilters.FilterType.TOON,
-         //   PhotoFilters.FilterType.SWIRL -> true
-         //   else -> false
-       // }
+    private fun updateIntensityPanelVisibility(filterType: PhotoFilters.FilterType) {
+        val hasIntensity = when (filterType) {
+            PhotoFilters.FilterType.SEPIA,
+            PhotoFilters.FilterType.SATURATE,
+            PhotoFilters.FilterType.BRIGHTNESS,
+            PhotoFilters.FilterType.CONTRAST,
+            PhotoFilters.FilterType.BLUR,
+            PhotoFilters.FilterType.SHARPEN,
+            PhotoFilters.FilterType.EMBOSS,
+            PhotoFilters.FilterType.TOON,
+            PhotoFilters.FilterType.SWIRL -> true
 
-      //  intensityPanel.visibility = if (hasIntensity) View.VISIBLE else View.GONE
-   // }
+            else -> false
+        }
+
+        intensityPanel.visibility = if (hasIntensity) View.VISIBLE else View.GONE
+    }
 
 
     private fun setupViewPager() {
@@ -209,21 +210,46 @@ class PhotoViewPagerActivity : AppCompatActivity() {
         viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 currentPosition = position
-                if (isCropMode) {
-                    exitCropMode()
-                }
+                if (isCropMode) exitCropMode()
+                if (isFilterMode) exitFilterMode()
+
             }
         })
     }
 
+    private fun enterFilterMode(){
+        isFilterMode=true
+        filterPanel.visibility=View.VISIBLE
+        btnBack.text="Отмена"
+    }
+    private fun exitFilterMode(){
+        isFilterMode=false
+        filterPanel.visibility=View.GONE
+        btnBack.text="Назад"
+    }
+
     private fun setupButtons() {
         btnBack.setOnClickListener {
-            if (isCropMode) {
+            when{
+                isCropMode->exitCropMode()
+                isFilterMode->exitFilterMode()
+            else->finish()
+        }
+        }
+        btnFilters.setOnClickListener{
+            if(isCropMode){
                 exitCropMode()
-            } else {
-                finish() // Возврат в CameraActivity
+            }
+            if(isFilterMode){
+                exitFilterMode()
+            }else{
+                enterFilterMode()
             }
         }
+
+
+
+
 
         btnCrop.setOnClickListener {
             if (isCropMode) {

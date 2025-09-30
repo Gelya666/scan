@@ -1,58 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/filterpanell"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="wrap_content"
+    android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@color/black">
+    android:background="@color/white">
 
-    <!-- Панель интенсивности -->
-    <LinearLayout
-        android:id="@+id/intensity_Panel1"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:padding="16dp"
-        android:visibility="gone">
+    <!-- Верхняя панель с кнопками -->
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Интенсивность:"
-            android:textColor="@color/white"
-            android:layout_gravity="center_vertical" />
-
-        <SeekBar
-            android:id="@+id/intensity_SeekBar1"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:layout_marginStart="16dp"
-            android:max="100"
-            android:progress="50" />
-
-        <TextView
-            android:id="@+id/intensity_Value1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="50%"
-            android:textColor="@color/white"
-            android:layout_marginStart="8dp" />
-
-    </LinearLayout>
-
-    <!-- Горизонтальный список фильтров -->
-    <HorizontalScrollView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <LinearLayout
-            android:id="@+id/filters_Container1"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:padding="8dp" />
-
-    </HorizontalScrollView>
 
 </LinearLayout>

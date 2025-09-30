@@ -10,13 +10,15 @@
     <androidx.viewpager2.widget.ViewPager2
         android:id="@+id/viewPager"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        app:layout_constraintTop_toTopOf="parent"
+        tools:layout_editor_absoluteX="-16dp" />
 
-        <Button
+    <Button
             android:id="@+id/btnUndo"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="40dp"
+            android:layout_marginTop="80dp"
             android:backgroundTint="#7789FF"
             android:fontFamily="@font/fonts"
             android:text="Undo"
@@ -31,7 +33,7 @@
             android:id="@+id/btnSave"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="40dp"
+            android:layout_marginTop="80dp"
             android:backgroundTint="#7789FF"
             android:fontFamily="@font/fonts"
             android:text="Save"
@@ -46,7 +48,7 @@
             android:id="@+id/btnFind"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="40dp"
+            android:layout_marginTop="80dp"
             android:backgroundTint="#7789FF"
             android:fontFamily="@font/fonts"
             android:text="Find"
@@ -165,44 +167,97 @@
                 android:layout_marginTop="4dp"/>
         </LinearLayout>
     <!-- Горизонтальный список фильтров -->
-    <HorizontalScrollView
+    <LinearLayout
+        android:id="@+id/filterpanel"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@color/white"
+        android:elevation="8dp"
+        android:orientation="vertical"
+        android:visibility="gone"
+        app:layout_constraintBottom_toTopOf="@+id/it2"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent">
+        app:layout_constraintStart_toStartOf="parent">
 
+        <!-- Панель интенсивности -->
         <LinearLayout
-            android:id="@+id/filters_Container"
-            android:layout_width="wrap_content"
+            android:id="@+id/intensity_Panel"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:padding="20dp" />
+            android:orientation="vertical"
+            android:padding="16dp"
+            android:visibility="gone">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="12dp"
+                android:text="Интенсивность фильтра:"
+                android:textColor="@color/black"
+                android:textSize="14sp" />
+
+            <SeekBar
+                android:id="@+id/intensity_SeekBar"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:max="100"
+                android:progress="50" />
+
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="start"
+                    android:text="Слабо"
+                    android:textColor="@color/black"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/intensity_Value"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:gravity="center"
+                    android:text="50%"
+                    android:textColor="@color/black"
+                    android:textSize="14sp" />
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:gravity="end"
+                    android:text="Сильно"
+                    android:textColor="@color/black"
+                    android:textSize="12sp" />
+
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Горизонтальный список фильтров -->
+        <HorizontalScrollView
+            android:contentDescription="Включить фильтр"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="10dp">
+
+            <LinearLayout
+                android:id="@+id/filters_Container"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal" />
+
+        </HorizontalScrollView>
+
+    </LinearLayout>
 
 
 
-    </HorizontalScrollView>
 
-    <SeekBar
-        android:id="@+id/intensity_SeekBar"
-        android:layout_width="28dp"
-        android:layout_height="13dp"
-        android:layout_weight="1"
-        android:max="100"
-        android:progress="50"
-        app:layout_constraintBottom_toTopOf="@+id/btnUndo"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-        android:id="@+id/intensity_Value"
-        android:layout_width="22dp"
-        android:layout_height="12dp"
-        android:text="50%"
-        android:textColor="@color/black"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
