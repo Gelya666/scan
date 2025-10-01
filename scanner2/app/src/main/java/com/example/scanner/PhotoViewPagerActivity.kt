@@ -43,9 +43,9 @@ class PhotoViewPagerActivity : AppCompatActivity() {
     private lateinit var btnSave: Button
     private lateinit var btnAddPage: ImageButton
     private lateinit var photoPaths: ArrayList<String>
-    private lateinit var btnFilters:ImageButton
+    private lateinit var btnFilters: ImageButton
     private lateinit var filtersContainer: LinearLayout
-
+    private var originalBitmap: Bitmap? = null
     private lateinit var filterPanel: LinearLayout
     private lateinit var intensityPanel: LinearLayout
     private lateinit var intensitySeekBar: SeekBar
@@ -55,6 +55,9 @@ class PhotoViewPagerActivity : AppCompatActivity() {
     private var isFilterMode = false
     private lateinit var adapter: PhotoAdapter
     private var currentPhotoFile: File? = null
+    private var currentIntensity: Float = 0.5f
+    private var isFilterApplied: Boolean = false
+    private var originalBitmaps: HashMap<Int, Bitmap> = HashMap()
 
     private val takePicture =
         registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
@@ -102,13 +105,66 @@ class PhotoViewPagerActivity : AppCompatActivity() {
             }
             checkCameraPermissionAndTakePhoto()
         }
+        btnSave.setOnClickListener {
+            saveFilteresChanges()
+        }
     }
+    private fun saveFilteresChanges(){
+        saveFilterImageToFile()
+        hideFilterPanel()
+        isFilterMode=false
+        Toast.makeText(this,"фильтр сохранён",Toast.LENGTH_SHORT).show()
+    }
+    private fun saveFilterImageToFile() {
+        if (currentPosition in 0 until photoPaths.size) {
+            val photoPath = photoPaths[currentPosition]
+            val currentFilter = adapter.getCurrentPosition(currentPosition)
+            val currentIntensity = adapter.filterIntensityMap[currentPosition] ?: 1.0f
+            if (currentFilter != PhotoFilters.FilterType.NONE)
+                CoroutineScope(Dispatchers.IO).launch {
+                    try {
+                        originalBitmap = originalBitmaps[currentPosition]
+                        originalBitmap?.let { bitmap ->
+                            val filteredBitmap = PhotoFilters.applyFilter(
+                                this@PhotoViewPagerActivity,
+                                bitmap,
+                                currentFilter,
+                                currentIntensity
+                            )
+                            FileOutputStream(photoPath).use { out ->
+                                filteredBitmap.compress(
+                                    Bitmap.CompressFormat.JPEG,
+                                    90,
+                                    out
+                                )
+                            }
+                            originalBitmaps[currentPosition] =
+                                filteredBitmap.copy(Bitmap.Config.ARGB_8888, true)
+                            withContext(Dispatchers.Main) {
+                                adapter.clearFilter(currentPosition)
+                            }
+                            filteredBitmap.recycle()
+                        }
+                    } catch (e: Exception) {
+                        Log.e("PhotoViewPager", "Error saving filtered image: ${e.message}")
+                        withContext(Dispatchers.Main) {
+                            Toast.makeText(
+                                this@PhotoViewPagerActivity,
+                                "Ошибка сохранения",
+                                Toast.LENGTH_SHORT
+                            ).show()
+                        }
+                    }
+                }
+        }
+    }
+
 
     private fun initViews() {
         viewPager = findViewById(R.id.viewPager)
         btnBack = findViewById(R.id.btnUndo)
         btnCrop = findViewById(R.id.btn_crop)
-        btnSave = findViewById(R.id.btnSave)
+        btnSave = findViewById(R.id.btnSave_Pager)
         btnAddPage = findViewById(R.id.btn_add_page)
         btnFilters = findViewById(R.id.btn_filter) // Инициализация кнопки фильтров
         filterPanel = findViewById(R.id.filterpanel)
@@ -117,6 +173,8 @@ class PhotoViewPagerActivity : AppCompatActivity() {
         intensityValue = findViewById(R.id.intensity_Value)
         filtersContainer = findViewById(R.id.filters_Container)
     }
+
+
     private fun setupFilterPanel() {
         val filters = PhotoFilters.getAllFilters()
 
@@ -150,6 +208,7 @@ class PhotoViewPagerActivity : AppCompatActivity() {
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         })
     }
+
     private fun loadFilterPreview(imageView: ImageView, filterType: PhotoFilters.FilterType) {
         // Загрузка превью для фильтра (можно использовать первое фото или стандартную картинку)
         if (photoPaths.isNotEmpty()) {
@@ -159,7 +218,12 @@ class PhotoViewPagerActivity : AppCompatActivity() {
                         inSampleSize = 4 // Маленькое превью
                     }
                     val bitmap = BitmapFactory.decodeFile(photoPaths[0], options)
-                    val previewBitmap = PhotoFilters.applyFilter(this@PhotoViewPagerActivity,bitmap, filterType, 0.7f)
+                    val previewBitmap = PhotoFilters.applyFilter(
+                        this@PhotoViewPagerActivity,
+                        bitmap,
+                        filterType,
+                        0.7f
+                    )
 
                     withContext(Dispatchers.Main) {
                         imageView.setImageBitmap(previewBitmap)
@@ -174,15 +238,25 @@ class PhotoViewPagerActivity : AppCompatActivity() {
 
     private fun applyFilterToCurrentPhoto(filterType: PhotoFilters.FilterType) {
         val currentIntensity = intensitySeekBar.progress / 100f
+        // Сохраняем оригинал перед первым применением фильтра
+                if (!originalBitmaps.containsKey(currentPosition)) {
+                    saveOriginalBitmapForCurrentPosition()
+                }
+
+        // Применяем фильтр через адаптер
         adapter.setFilterForPosition(currentPosition, filterType, currentIntensity)
     }
+
+
+
 
     private fun applyFilterWithIntensity(intensity: Float) {
         val currentFilter = adapter.getCurrentPosition(currentPosition)
         if (currentFilter != PhotoFilters.FilterType.NONE) {
-            adapter.setFilterForPosition(currentPosition, currentFilter, intensity)
-        }
-    }
+             adapter.setFilterForPosition(currentPosition, currentFilter, intensity)
+                }
+            }
+
 
     private fun updateIntensityPanelVisibility(filterType: PhotoFilters.FilterType) {
         val hasIntensity = when (filterType) {
@@ -201,8 +275,6 @@ class PhotoViewPagerActivity : AppCompatActivity() {
 
         intensityPanel.visibility = if (hasIntensity) View.VISIBLE else View.GONE
     }
-
-
     private fun setupViewPager() {
         adapter = PhotoAdapter(this,photoPaths, false)
         viewPager.adapter = adapter
@@ -211,45 +283,69 @@ class PhotoViewPagerActivity : AppCompatActivity() {
             override fun onPageSelected(position: Int) {
                 currentPosition = position
                 if (isCropMode) exitCropMode()
-                if (isFilterMode) exitFilterMode()
+                if (isFilterMode) exitFilterModeWithoutSaving()
 
             }
         })
+        viewPager.setCurrentItem(currentPosition, false)
+    }
+    override fun onBackPressed() {
+        when {
+            isCropMode -> exitCropMode()
+            isFilterMode -> exitFilterModeWithoutSaving()
+            else -> super.onBackPressed()
+        }
     }
 
     private fun enterFilterMode(){
+        if (isFilterMode) {
+            return // Уже в режиме фильтров
+        }
         isFilterMode=true
+        saveOriginalBitmapForCurrentPosition()
+        showFilterPanel()
+    }
+    private fun showFilterPanel(){
         filterPanel.visibility=View.VISIBLE
-        btnBack.text="Отмена"
+        Log.d("Filter", "Filter panel shown")
     }
-    private fun exitFilterMode(){
+    private fun hideFilterPanel() {
+        filterPanel.visibility = View.GONE
+        intensityPanel.visibility = View.GONE
+    }
+    private fun exitFilterModeWithoutSaving(){
+        restoreOriginalImageForCurrentPosition()
+        hideFilterPanel()
         isFilterMode=false
-        filterPanel.visibility=View.GONE
-        btnBack.text="Назад"
-    }
+        Toast.makeText(this,"Фильтр отменен",Toast.LENGTH_SHORT).show()
 
+    }
+    private fun restoreOriginalImageForCurrentPosition() {
+        adapter.clearFilter(currentPosition)
+
+        // Также очищаем сохраненный оригинал, чтобы не занимать память
+        originalBitmaps.remove(currentPosition)
+        }
+
+    private fun saveOriginalBitmapForCurrentPosition(){
+        val photoPath=photoPaths[currentPosition]
+        val bitmap = BitmapFactory.decodeFile(photoPath)
+        bitmap?.let {
+            // Сохраняем оригинал в памяти
+            originalBitmaps[currentPosition] = it.copy(Bitmap.Config.ARGB_8888, true)
+        }
+        }
     private fun setupButtons() {
         btnBack.setOnClickListener {
             when{
                 isCropMode->exitCropMode()
-                isFilterMode->exitFilterMode()
+                isFilterMode->exitFilterModeWithoutSaving()
             else->finish()
         }
         }
         btnFilters.setOnClickListener{
-            if(isCropMode){
-                exitCropMode()
-            }
-            if(isFilterMode){
-                exitFilterMode()
-            }else{
-                enterFilterMode()
-            }
+            enterFilterMode()
         }
-
-
-
-
 
         btnCrop.setOnClickListener {
             if (isCropMode) {
@@ -276,7 +372,6 @@ class PhotoViewPagerActivity : AppCompatActivity() {
         btnBack.text = "Назад"
         viewPager.isUserInputEnabled = true
     }
-
     private fun checkCameraPermissionAndTakePhoto() {
         if (ContextCompat.checkSelfPermission(
                 this,
@@ -287,7 +382,6 @@ class PhotoViewPagerActivity : AppCompatActivity() {
         }
         requestPermission.launch(Manifest.permission.CAMERA)
     }
-
     private fun takePhoto() {
         // Создаем временный файл для фото
         val photoFile = createImageFile()
@@ -394,9 +488,9 @@ class PhotoViewPagerActivity : AppCompatActivity() {
             throw e
         }
     }
-
     override fun onDestroy() {
         super.onDestroy()
         viewPager.adapter = null // Очищаем адаптер
+
     }
 }

@@ -18,7 +18,7 @@ class PhotoAdapter(
     private var photoPaths: List<String>,
     private var isCropMode: Boolean = false): RecyclerView.Adapter <PhotoAdapter.PhotoViewHolder>(){
     private val filtersMap = mutableMapOf<Int, PhotoFilters.FilterType>()
-    private val filterIntensityMap = mutableMapOf<Int, Float>()
+     val filterIntensityMap = mutableMapOf<Int, Float>()
     fun setFilterForPosition(position: Int, filterType: PhotoFilters.FilterType, intensity: Float = 1.0f) {
         filtersMap[position] = filterType
         filterIntensityMap[position] = intensity
