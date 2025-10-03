@@ -3,10 +3,12 @@ package com.example.scanner
 import android.content.Context
 import android.graphics.BitmapFactory
 import android.util.Log
+import android.util.Log.e
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
+import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -19,6 +21,7 @@ class PhotoAdapter(
     private var isCropMode: Boolean = false): RecyclerView.Adapter <PhotoAdapter.PhotoViewHolder>(){
     private val filtersMap = mutableMapOf<Int, PhotoFilters.FilterType>()
      val filterIntensityMap = mutableMapOf<Int, Float>()
+    private val imageRotate = ImageRotate()
     fun setFilterForPosition(position: Int, filterType: PhotoFilters.FilterType, intensity: Float = 1.0f) {
         filtersMap[position] = filterType
         filterIntensityMap[position] = intensity
@@ -31,6 +34,28 @@ class PhotoAdapter(
         filtersMap.remove(position)
         filterIntensityMap.remove(position)
         notifyItemChanged(position)
+    }
+    fun rotateImage(position:Int,degrees:Float=90f){
+        if(position in 0 until photoPaths.size){
+            val imagePath =photoPaths[position]
+            imageRotate.rotateImage(imagePath,90f,object: ImageRotate.RotationListener{
+                override fun onRotationStarted(){}
+                override fun onRotationSuccess() {
+                   notifyItemChanged(position)
+                    Toast.makeText(context,"Изображение перевёрнуто успешно",Toast.LENGTH_SHORT).show()
+                }
+
+                override fun onRotationError(error: String) {
+                    Toast.makeText(context,"Ошибка поврота:$error",Toast.LENGTH_SHORT).show()
+                }
+            } )
+        }
+    }
+    fun rotate90Clockwise(position:Int){
+        rotateImage(position,-90f)
+    }
+    fun rotate90CounterClockwise(position:Int){
+        rotateImage(position,90f)
     }
 
 
