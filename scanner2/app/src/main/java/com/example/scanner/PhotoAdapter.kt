@@ -1,7 +1,9 @@
 package com.example.scanner
 
 import android.content.Context
+import android.graphics.Bitmap
 import android.graphics.BitmapFactory
+import android.graphics.Rect
 import android.util.Log
 import android.util.Log.e
 import android.view.LayoutInflater
@@ -9,11 +11,13 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.Toast
+import androidx.camera.core.internal.utils.ImageUtil.rotateBitmap
 import androidx.recyclerview.widget.RecyclerView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
 
 class PhotoAdapter(
     private val context: Context,
@@ -21,7 +25,11 @@ class PhotoAdapter(
     private var isCropMode: Boolean = false): RecyclerView.Adapter <PhotoAdapter.PhotoViewHolder>(){
     private val filtersMap = mutableMapOf<Int, PhotoFilters.FilterType>()
      val filterIntensityMap = mutableMapOf<Int, Float>()
+    val rotationStates= mutableMapOf<Int,Float>()
+    private val originalImages =mutableMapOf<Int,String>()
     private val imageRotate = ImageRotate()
+    private val cropStates = mutableMapOf<Int, Rect>() // состояния обрезки
+    private val originalBitmapsMap = mutableMapOf<String, Bitmap>()
     fun setFilterForPosition(position: Int, filterType: PhotoFilters.FilterType, intensity: Float = 1.0f) {
         filtersMap[position] = filterType
         filterIntensityMap[position] = intensity
@@ -30,17 +38,67 @@ class PhotoAdapter(
     fun getCurrentPosition(position:Int):PhotoFilters.FilterType{
         return filtersMap[position]?:PhotoFilters.FilterType.NONE
     }
+
     fun clearFilter(position:Int){
         filtersMap.remove(position)
         filterIntensityMap.remove(position)
         notifyItemChanged(position)
     }
+    fun clearAllRotations() {
+        // Восстанавливаем оригиналы для всех позиций
+        for (position in rotationStates.keys) {
+            originalImages[position]?.let { originalPath ->
+                try {
+                    File(originalPath).copyTo(File(photoPaths[position]), overwrite = true)
+                } catch (e: Exception) {
+                    // Игнорируем ошибки для отдельных файлов
+                }
+            }
+        }
+
+        // Очищаем все повороты
+        rotationStates.clear()
+        notifyDataSetChanged()
+    }
+
+    fun resetImageRotation(position: Int) {
+        if (position in 0 until photoPaths.size) {
+            originalImages[position]?.let { originalPath ->
+                try{
+                    File(originalPath).copyTo(File(photoPaths[position]), overwrite = true)
+                rotationStates[position] = 0f
+                notifyItemChanged(position) // Перезагрузит изображение с rotation=0
+                Toast.makeText(context, "Поворот сброшен", Toast.LENGTH_SHORT).show()
+                } catch (e: Exception) {
+                    Toast.makeText(context, "Ошибка: ${e.message}", Toast.LENGTH_SHORT).show()
+                }
+            } ?: run {
+                Toast.makeText(context, "Нет оригинала для сброса", Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+    fun saveOriginalImage(position: Int) {
+        if (position !in 0 until photoPaths.size) {
+            return
+        }
+            val originalFile = File(photoPaths[position])
+            val backupFile = File(originalFile.parent, "backup_${originalFile.name}")
+            originalFile.copyTo(backupFile, overwrite = true)
+            originalImages[position] = backupFile.absolutePath
+        }
+
+
+
+
     fun rotateImage(position:Int,degrees:Float=90f){
+        saveOriginalImage(position)
         if(position in 0 until photoPaths.size){
             val imagePath =photoPaths[position]
-            imageRotate.rotateImage(imagePath,90f,object: ImageRotate.RotationListener{
+            val currentRotation=rotationStates[position] ?: 0f
+            val newRotation=(currentRotation+degrees)%360
+            imageRotate.rotateImage(imagePath,degrees,object: ImageRotate.RotationListener{
                 override fun onRotationStarted(){}
-                override fun onRotationSuccess() {
+                override fun onRotationSuccess() { rotationStates[position]=newRotation
                    notifyItemChanged(position)
                     Toast.makeText(context,"Изображение перевёрнуто успешно",Toast.LENGTH_SHORT).show()
                 }
@@ -51,6 +109,7 @@ class PhotoAdapter(
             } )
         }
     }
+
     fun rotate90Clockwise(position:Int){
         rotateImage(position,-90f)
     }
@@ -75,6 +134,7 @@ class PhotoAdapter(
                 //cropOverlay.resetCrop()
             //}
         }
+
         fun loadImageWithFilter(photoPath: String,filterType: PhotoFilters.FilterType,intensity: Float,isCropMode: Boolean) {
             CoroutineScope(Dispatchers.IO).launch {
                 try {

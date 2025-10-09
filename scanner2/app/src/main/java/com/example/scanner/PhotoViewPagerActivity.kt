@@ -41,10 +41,13 @@ class PhotoViewPagerActivity : AppCompatActivity() {
     private lateinit var btnBack: Button
     private lateinit var btnCrop: ImageButton
     private lateinit var btnSave: Button
+    private lateinit var btnUnd: Button
+    private lateinit var btnCancelCrop: Button
     private lateinit var btnAddPage: ImageButton
     private lateinit var photoPaths: ArrayList<String>
     private lateinit var btnFilters: ImageButton
-    private lateinit var btnRotate:ImageButton
+    private lateinit var btnSaveCrop: Button
+    private lateinit var btnRotate: ImageButton
     private lateinit var filtersContainer: LinearLayout
     private var originalBitmap: Bitmap? = null
     private lateinit var filterPanel: LinearLayout
@@ -54,12 +57,15 @@ class PhotoViewPagerActivity : AppCompatActivity() {
     private var currentPosition: Int = 0
     private var isCropMode = false
     private var isFilterMode = false
+    private var isRotateMode = false
     private lateinit var adapter: PhotoAdapter
+    private var currentFilePath: String? = null
     private var currentPhotoFile: File? = null
     private var currentIntensity: Float = 0.5f
     private var isFilterApplied: Boolean = false
     private var originalBitmaps: HashMap<Int, Bitmap> = HashMap()
-    private val imageRotate = ImageRotate()
+    private var imageRotate = ImageRotate()
+    private val originalImagesBackup = mutableMapOf<Int, String>()
 
     private val takePicture =
         registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
@@ -100,63 +106,67 @@ class PhotoViewPagerActivity : AppCompatActivity() {
         initViews()
         setupViewPager()
         setupButtons()
+        setupUndoButton()
         setupFilterPanel()
+        updateUI()
         btnAddPage.setOnClickListener {
             if (isCropMode) {
                 exitCropMode()
             }
             checkCameraPermissionAndTakePhoto()
         }
-        btnSave.setOnClickListener {
-            saveCurrentMode()
-        }
-       updateSaveButton()
-        btnRotate.setOnClickListener {
+        updateSaveButton()
+
+        /*btnRotate.setOnClickListener {
             rotateCurrentImage()
-        }
+        }*/
     }
-    private fun rotateCurrentImage(){
-     adapter.rotate90Clockwise(currentPosition)
+
+    private fun rotateCurrentImage() {
+        adapter.rotateImage(currentPosition, 90f)
     }
-    private fun saveCurrentMode(){
+
+    private fun saveCurrentMode() {
         when {
-            isCropMode->saveOnlyCrop()
-            isFilterMode->saveOnlyFilter()
+            isFilterMode -> saveOnlyFilter()
         }
     }
-    private fun saveOnlyCrop(){
-        saveCropChanges()
-        exitCropMode()
-        Toast.makeText(this,"Cохранить",Toast.LENGTH_SHORT).show()
-    }
-    private fun saveCropChanges(){
-        performCrop()
-    }
-    private fun saveOnlyFilter(){
+
+    private fun saveOnlyFilter() {
         saveFilterChanges()
         exitFilterMode()
-        Toast.makeText(this,"Сохранить",Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, "Сохранить", Toast.LENGTH_SHORT).show()
     }
-    private fun updateSaveButton(){
-        when{
-            isCropMode->{
-                btnSave.text="Сохранить"
-                btnSave.visibility=View.VISIBLE
-                btnSave.setBackgroundColor(ContextCompat.getColor(this,R.color.color_crop))
+
+    private fun updateSaveButton() {
+        when {
+            isCropMode -> {
+                btnSave.text = "Save"
+                btnSave.visibility = View.VISIBLE
+                btnSave.setBackgroundColor(ContextCompat.getColor(this, R.color.color_crop))
             }
-            isFilterMode->{
-                btnSave.text="Сохранить"
-                btnSave.visibility=View.VISIBLE
-                btnSave.setBackgroundColor(ContextCompat.getColor(this,R.color.color_filter))
+
+            isFilterMode -> {
+                btnSave.text = "Save"
+                btnSave.visibility = View.VISIBLE
+                btnSave.setBackgroundColor(ContextCompat.getColor(this, R.color.color_filter))
+            }
+
+            isRotateMode -> {
+                btnSave.text = "Save"
+                btnSave.visibility = View.VISIBLE
+                btnSave.setBackgroundColor(ContextCompat.getColor(this, R.color.color_primary))
             }
         }
     }
-    private fun saveFilterChanges(){
+
+    private fun saveFilterChanges() {
         saveFilterImageToFile()
         hideFilterPanel()
-        isFilterMode=false
-        Toast.makeText(this,"фильтр сохранён",Toast.LENGTH_SHORT).show()
+        isFilterMode = false
+        Toast.makeText(this, "фильтр сохранён", Toast.LENGTH_SHORT).show()
     }
+
     private fun saveFilterImageToFile() {
         if (currentPosition in 0 until photoPaths.size) {
             val photoPath = photoPaths[currentPosition]
@@ -200,6 +210,7 @@ class PhotoViewPagerActivity : AppCompatActivity() {
                 }
         }
     }
+
     private fun initViews() {
         viewPager = findViewById(R.id.viewPager)
         btnBack = findViewById(R.id.btnUndo)
@@ -212,8 +223,12 @@ class PhotoViewPagerActivity : AppCompatActivity() {
         intensitySeekBar = findViewById(R.id.intensity_SeekBar)
         intensityValue = findViewById(R.id.intensity_Value)
         filtersContainer = findViewById(R.id.filters_Container)
-        btnRotate =findViewById(R.id.btn_rotate)
+        btnRotate = findViewById(R.id.btn_rotate)
+        btnUnd = findViewById(R.id.btnUnd)
+        btnCancelCrop = findViewById(R.id.btn_сancel_crop)
+        btnSaveCrop = findViewById(R.id.btn_save_crop)
     }
+
     private fun setupFilterPanel() {
         val filters = PhotoFilters.getAllFilters()
         filters.forEach { filterItem ->
@@ -244,6 +259,7 @@ class PhotoViewPagerActivity : AppCompatActivity() {
             override fun onStopTrackingTouch(seekBar: SeekBar?) {}
         })
     }
+
     private fun loadFilterPreview(imageView: ImageView, filterType: PhotoFilters.FilterType) {
         // Загрузка превью для фильтра (можно использовать первое фото или стандартную картинку)
         if (photoPaths.isNotEmpty()) {
@@ -270,22 +286,24 @@ class PhotoViewPagerActivity : AppCompatActivity() {
             }
         }
     }
+
     private fun applyFilterToCurrentPhoto(filterType: PhotoFilters.FilterType) {
         val currentIntensity = intensitySeekBar.progress / 100f
         // Сохраняем оригинал перед первым применением фильтра
-                if (!originalBitmaps.containsKey(currentPosition)) {
-                    saveOriginalBitmapForCurrentPosition()
-                }
+        if (!originalBitmaps.containsKey(currentPosition)) {
+            saveOriginalBitmapForCurrentPosition()
+        }
 
         // Применяем фильтр через адаптер
         adapter.setFilterForPosition(currentPosition, filterType, currentIntensity)
     }
+
     private fun applyFilterWithIntensity(intensity: Float) {
         val currentFilter = adapter.getCurrentPosition(currentPosition)
         if (currentFilter != PhotoFilters.FilterType.NONE) {
-             adapter.setFilterForPosition(currentPosition, currentFilter, intensity)
-                }
-            }
+            adapter.setFilterForPosition(currentPosition, currentFilter, intensity)
+        }
+    }
 
 
     private fun updateIntensityPanelVisibility(filterType: PhotoFilters.FilterType) {
@@ -305,8 +323,9 @@ class PhotoViewPagerActivity : AppCompatActivity() {
 
         intensityPanel.visibility = if (hasIntensity) View.VISIBLE else View.GONE
     }
+
     private fun setupViewPager() {
-        adapter = PhotoAdapter(this,photoPaths, false)
+        adapter = PhotoAdapter(this, photoPaths, false)
         viewPager.adapter = adapter
         viewPager.setCurrentItem(currentPosition, false)
         viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
@@ -319,88 +338,123 @@ class PhotoViewPagerActivity : AppCompatActivity() {
         })
         viewPager.setCurrentItem(currentPosition, false)
     }
+
+    @Deprecated("This method has been deprecated in favor of using the\n      {@link OnBackPressedDispatcher} via {@link #getOnBackPressedDispatcher()}.\n      The OnBackPressedDispatcher controls how back button events are dispatched\n      to one or more {@link OnBackPressedCallback} objects.")
     override fun onBackPressed() {
         when {
-            isCropMode -> exitCropMode()
+            isCropMode -> exitCropModeWithoutSaving()
             isFilterMode -> exitFilterModeWithoutSaving()
             else -> super.onBackPressed()
         }
     }
 
-    private fun enterFilterMode(){
+    private fun enterFilterMode() {
         if (isCropMode) {
-            exitCropModeWithoutSaving()
+            exitCropMode()
         }
-        isFilterMode=true
+        isFilterMode = true
         saveOriginalBitmapForCurrentPosition()
         showFilterPanel()
         updateSaveButton()
     }
-    private fun showFilterPanel(){
-        filterPanel.visibility=View.VISIBLE
+
+    private fun enterRotateMode() {
+        if (isCropMode) {
+            exitCropMode()
+        }
+        if (isFilterMode) {
+            exitFilterMode()
+        }
+        isRotateMode = true
+        updateSaveButton()
+        rotateCurrentImage()
+    }
+
+    private fun showFilterPanel() {
+        filterPanel.visibility = View.VISIBLE
         Log.d("Filter", "Filter panel shown")
     }
+
     private fun hideFilterPanel() {
         filterPanel.visibility = View.GONE
         intensityPanel.visibility = View.GONE
     }
-    private fun exitFilterModeWithoutSaving(){
-        isFilterMode=false
+
+    private fun exitFilterModeWithoutSaving() {
+        isFilterMode = false
         hideFilterPanel()
         restoreOriginalImageForCurrentPosition()
-        hideFilterPanel()
-        isFilterMode=false
-        Toast.makeText(this,"Фильтр отменен",Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, "Фильтр отменен", Toast.LENGTH_SHORT).show()
 
     }
+
+    private fun exitRotateModeWithoutSaving() {
+        isRotateMode = false
+        restoreRotateImage()
+        Toast.makeText(this, "Поворот отменена", Toast.LENGTH_SHORT).show()
+    }
+
     private fun exitFilterMode() {
         isFilterMode = false
         hideFilterPanel()
         updateSaveButton()
     }
-    private fun  restoreOriginalImageForCurrentPosition() {
+
+    private fun restoreOriginalImageForCurrentPosition() {
         adapter.clearFilter(currentPosition)
 
         // Также очищаем сохраненный оригинал, чтобы не занимать память
         originalBitmaps.remove(currentPosition)
-        }
+    }
 
-    private fun saveOriginalBitmapForCurrentPosition(){
-        val photoPath=photoPaths[currentPosition]
+    private fun restoreRotateImage() {
+        adapter.clearAllRotations()
+    }
+
+    private fun saveOriginalBitmapForCurrentPosition() {
+        val photoPath = photoPaths[currentPosition]
         val bitmap = BitmapFactory.decodeFile(photoPath)
         bitmap?.let {
             // Сохраняем оригинал в памяти
             originalBitmaps[currentPosition] = it.copy(Bitmap.Config.ARGB_8888, true)
         }
-        }
+    }
+
     private fun setupButtons() {
         btnBack.setOnClickListener {
             when {
                 isCropMode -> exitCropMode()
                 isFilterMode -> exitFilterModeWithoutSaving()
+                isRotateMode -> exitRotateModeWithoutSaving()
                 else -> finish()
             }
         }
         btnFilters.setOnClickListener {
             enterFilterMode()
         }
+        btnRotate.setOnClickListener {
+            enterRotateMode()
+        }
 
         btnCrop.setOnClickListener {
-            if (isCropMode) {
-                performCrop()
-            } else {
-                enterCropMode()
-            }
+          enterCropMode()
+        }
+        btnSave.setOnClickListener {
+            saveCurrentMode()
+        }
+
+        btnCancelCrop.setOnClickListener {
+            exitCropModeWithoutSaving()
+        }
+        btnUnd.setOnClickListener {
+            undoLastCrop()
+        }
+        btnSaveCrop.setOnClickListener {
+            performCrop()
         }
     }
-    private fun exitCropModeWithoutSaving(){
-        isCropMode=false
-        //hideCropOverlay()
-        updateSaveButton()
-        Toast.makeText(this, "Обрезка отменена", Toast.LENGTH_SHORT).show()
-    }
 
-
+    /*
     private fun enterCropMode() {
         if (isFilterMode) {
             exitFilterModeWithoutSaving()
@@ -411,7 +465,6 @@ class PhotoViewPagerActivity : AppCompatActivity() {
         updateSaveButton()
         viewPager.isUserInputEnabled=false
     }
-
     private fun exitCropMode(){
         isCropMode = false
         adapter.setCropMode(false)
@@ -419,7 +472,7 @@ class PhotoViewPagerActivity : AppCompatActivity() {
         viewPager.isUserInputEnabled = true
     }
 
-
+     */
     private fun checkCameraPermissionAndTakePhoto() {
         if (ContextCompat.checkSelfPermission(
                 this,
@@ -430,6 +483,7 @@ class PhotoViewPagerActivity : AppCompatActivity() {
         }
         requestPermission.launch(Manifest.permission.CAMERA)
     }
+
     private fun takePhoto() {
         // Создаем временный файл для фото
         val photoFile = createImageFile()
@@ -438,7 +492,6 @@ class PhotoViewPagerActivity : AppCompatActivity() {
             val photoUri =
                 FileProvider.getUriForFile(this, "${packageName}.fileprovider", photoFile)
             takePicture.launch(photoUri)
-
         }
     }
 
@@ -475,7 +528,7 @@ class PhotoViewPagerActivity : AppCompatActivity() {
                     Toast.makeText(this, "Выберите область для обрезки", Toast.LENGTH_SHORT).show()
                     return
                 }
-
+                saveOriginalBackup(currentPosition, currentPhotoPath)
                 // Загружаем оригинальное изображение
                 val originalBitmap = BitmapFactory.decodeFile(currentPhotoPath)
 
@@ -489,7 +542,6 @@ class PhotoViewPagerActivity : AppCompatActivity() {
                     (cropRect.right * scaleX).toInt(),
                     (cropRect.bottom * scaleY).toInt()
                 )
-
                 // Проверяем границы
                 val safeCropRect = Rect(
                     scaledCropRect.left.coerceIn(0, originalBitmap.width),
@@ -497,7 +549,6 @@ class PhotoViewPagerActivity : AppCompatActivity() {
                     scaledCropRect.right.coerceIn(0, originalBitmap.width),
                     scaledCropRect.bottom.coerceIn(0, originalBitmap.height)
                 )
-
                 // Выполняем обрезку
                 val croppedBitmap = Bitmap.createBitmap(
                     originalBitmap,
@@ -506,14 +557,14 @@ class PhotoViewPagerActivity : AppCompatActivity() {
                     safeCropRect.width(),
                     safeCropRect.height()
                 )
-
                 // Сохраняем
                 saveCroppedImage(croppedBitmap, currentPhotoPath)
                 originalBitmap.recycle()
-
-                Toast.makeText(this, "Фото обрезано!", Toast.LENGTH_SHORT).show()
+                showUndoButton()
+                setupUndoButton()
                 exitCropMode()
 
+                Toast.makeText(this, "Фото обрезано!", Toast.LENGTH_SHORT).show()
             } ?: run {
                 Toast.makeText(this, "Ошибка доступа к элементу", Toast.LENGTH_SHORT).show()
             }
@@ -536,10 +587,166 @@ class PhotoViewPagerActivity : AppCompatActivity() {
             throw e
         }
     }
+
+    private fun saveOriginalBackup(position: Int, originalPath: String) {
+        try {
+            if (position !in 0 until photoPaths.size) return
+            val originalFile = File(originalPath)
+            if (!originalFile.exists()) return
+
+            // Создаем временный файл для бэкапа
+            val backupDir = File(cacheDir, "crop_backup")
+            if (!backupDir.exists()) {
+                backupDir.mkdirs()
+            }
+            val backupFile = File(backupDir, "backup_${originalFile.name}")
+            // Копируем оригинальный файл
+            originalFile.copyTo(backupFile, overwrite = true)
+            // Сохраняем путь к бэкапу
+            originalImagesBackup[position] = backupFile.absolutePath
+            Log.d("CropDebug", "Создан бэкап: ${backupFile.absolutePath}")
+        } catch (e: Exception) {
+            Log.e("CropDebug", "Ошибка создания бэкапа: ${e.message}")
+        }
+    }
+
+    private fun undoLastCrop() {
+        try {
+            val position = currentPosition
+            val backupPath = originalImagesBackup[position] ?: return
+
+            val backupFile = File(backupPath)
+            val currentFile = File(photoPaths[position])
+
+            if (!backupFile.exists()) {
+                originalImagesBackup.remove(position)
+                return
+            }
+
+            // Восстанавливаем оригинал
+            backupFile.copyTo(currentFile, overwrite = true)
+            backupFile.delete()
+            originalImagesBackup.remove(position)
+
+            adapter.notifyItemChanged(position)
+            if (originalImagesBackup.isEmpty())
+                hideUndoButton()
+
+            Toast.makeText(this, "Обрезка отменена", Toast.LENGTH_SHORT).show()
+
+        } catch (e: Exception) {
+            Log.e("CropDebug", "Ошибка отмены обрезки: ${e.message}")
+        }
+    }
+
+    private fun clearBackups() {
+        try {
+            val backupDir = File(cacheDir, "crop_backup")
+            if (backupDir.exists()) {
+                backupDir.deleteRecursively()
+            }
+            originalImagesBackup.clear()
+        } catch (e: Exception) {
+            Log.e("CropDebug", "Ошибка очистки бэкапов: ${e.message}")
+        }
+    }
+
+    private fun setupUndoButton() {
+        btnUnd.setOnClickListener {
+            undoLastCrop() // ✅ Вызов метода отмены
+        }
+        btnUnd.visibility = View.GONE // Изначально скрыта
+    }
+
+    private fun showUndoButton() {
+        if (!isCropMode && originalImagesBackup.isNotEmpty()) {
+            btnUnd.visibility = View.VISIBLE
+            Log.d("CropDebug", "Показана кнопка Undo, backup count: ${originalImagesBackup.size}")
+        } else {
+            Log.d("CropDebug", "Undo не показана: isCropMode=$isCropMode, backupCount=${originalImagesBackup.size}")
+        }
+    }
+
+    private fun enterCropMode() {
+      when{
+          isFilterMode->exitFilterMode()
+          isRotateMode->exitRotateModeWithoutSaving()
+      }
+        val position = viewPager.currentItem
+        currentPosition = position
+        isCropMode = true
+        adapter.setCropMode(true)
+        viewPager.isUserInputEnabled = false
+        if (originalImagesBackup.containsKey(position)) {
+            deleteBackupForPosition(position)
+        }
+        hideUndoButton()
+        updateUI()
+    }
+    private fun deleteBackupForPosition(position: Int) {
+        try {
+            val backupPath = originalImagesBackup[position]
+            if (backupPath != null) {
+                val backupFile = File(backupPath)
+                if (backupFile.exists()) {
+                    backupFile.delete()
+                }
+                originalImagesBackup.remove(position)
+                Log.d("CropDebug", "Бэкап удален для позиции $position")
+            }
+        } catch (e: Exception) {
+            Log.e("CropDebug", "Ошибка удаления бэкапа: ${e.message}")
+        }
+    }
+
+    private fun exitCropMode() {
+        isCropMode = false
+        adapter.setCropMode(false)
+        viewPager.isUserInputEnabled = true
+        updateUI()
+    }
+
+    private fun exitCropModeWithoutSaving() {
+        isCropMode = false
+        adapter.setCropMode(false)
+        viewPager.isUserInputEnabled = true
+        updateUI()
+        Toast.makeText(this, "Обрезка отменена", Toast.LENGTH_SHORT).show()
+    }
+
+    private fun updateUI() {
+        if (isCropMode) {
+            // РЕЖИМ ОБРЕЗКИ - показываем кнопки Сохранить/Отмена
+            btnSaveCrop.visibility = View.VISIBLE
+            btnCancelCrop.visibility = View.VISIBLE
+            btnUnd.visibility = View.GONE
+        } else {
+            // ОБЫЧНЫЙ РЕЖИМ - показываем кнопку Обрезать
+            btnSaveCrop.visibility = View.GONE
+            btnCancelCrop.visibility = View.GONE
+
+            // Показываем кнопку Отмена только если есть что отменять
+            if (originalImagesBackup.isNotEmpty()) {
+            btnUnd.visibility = View.VISIBLE
+        }
+    }
+}
+
+    private fun hideUndoButton() {
+        btnUnd.animate()
+            .alpha(0f)
+            .setDuration(300)
+            .withEndAction {
+                btnUnd.visibility = View.GONE
+            }
+            .start()
+    }
     override fun onDestroy() {
         super.onDestroy()
         viewPager.adapter = null
        // Очищаем адаптер
-
+        clearBackups()
     }
 }
+
+
