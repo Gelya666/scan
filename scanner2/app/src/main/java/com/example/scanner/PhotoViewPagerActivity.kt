@@ -23,6 +23,8 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
+import com.google.android.material.tabs.TabLayout
+import com.google.android.material.tabs.TabLayoutMediator
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -38,6 +40,7 @@ import java.util.Locale
 class PhotoViewPagerActivity : AppCompatActivity() {
 
     private lateinit var viewPager: ViewPager2
+    private lateinit var tabLayout: TabLayout
     private lateinit var btnBack: Button
     private lateinit var btnCrop: ImageButton
     private lateinit var btnSave: Button
@@ -120,7 +123,11 @@ class PhotoViewPagerActivity : AppCompatActivity() {
         /*btnRotate.setOnClickListener {
             rotateCurrentImage()
         }*/
+        TabLayoutMediator(tabLayout, viewPager) { tab, position ->
+            tab.text = "Page ${position + 1}"
+        }.attach()
     }
+
 
     private fun rotateCurrentImage() {
         adapter.rotateImage(currentPosition, 90f)
@@ -227,6 +234,7 @@ class PhotoViewPagerActivity : AppCompatActivity() {
         btnUnd = findViewById(R.id.btnUnd)
         btnCancelCrop = findViewById(R.id.btn_сancel_crop)
         btnSaveCrop = findViewById(R.id.btn_save_crop)
+         tabLayout = findViewById(R.id.tabLayout)
     }
 
     private fun setupFilterPanel() {
