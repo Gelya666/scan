@@ -37,9 +37,8 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
         private const val REQUEST_CAMERA_PERMISSION = 100
         private const val REQUEST_IMAGE_CAPTURE = 101
         const val EXTRA_PHOTO_PATHS = "photo_paths"
-        private val allPhotoPaths = mutableListOf<String>()
     }
-
+    private val allPhotoPaths = mutableListOf<String>()
     val filePickerLauncher = registerForActivityResult(
         ActivityResultContracts.OpenDocument()
     ) { uri: Uri? ->
@@ -47,9 +46,7 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
             readPdfFromUri(uri)
         }
     }
-
     private var photoUri: Uri? = null
-
     private val takePicture =
         registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
             if (success) {
@@ -62,7 +59,6 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
                 Toast.makeText(this, "Фото не сделано", Toast.LENGTH_SHORT).show()
             }
         }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -96,6 +92,14 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
         }
 
     }
+    override fun onResume() {
+        super.onResume()
+        Log.d("DEBUG", "MainActivity onResume - фото: ${allPhotoPaths.size}")
+        // Если нужно очищать при каждом показе - раскомментируйте:
+         allPhotoPaths.clear()
+         Log.d("DEBUG", "После очистки - фото: ${allPhotoPaths.size}")
+    }
+
 
     override fun onRequestPermissionsResult(
         requestCode: Int,
@@ -210,6 +214,9 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
             putExtra("current_position", allPhotoPaths.size - 1)
         }
         startActivity(intent)
+        // Очищаем после перехода если нужно
+        // allPhotoPaths.clear()
+        // Log.d("DEBUG", "После перехода - фото: ${allPhotoPaths.size}")
     }
 
     private fun readPdfFromUri(uri: Uri) {

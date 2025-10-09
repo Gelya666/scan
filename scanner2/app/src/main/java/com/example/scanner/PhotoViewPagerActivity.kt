@@ -347,13 +347,44 @@ class PhotoViewPagerActivity : AppCompatActivity() {
         viewPager.setCurrentItem(currentPosition, false)
     }
 
+
     @Deprecated("This method has been deprecated in favor of using the\n      {@link OnBackPressedDispatcher} via {@link #getOnBackPressedDispatcher()}.\n      The OnBackPressedDispatcher controls how back button events are dispatched\n      to one or more {@link OnBackPressedCallback} objects.")
     override fun onBackPressed() {
+        Log.d("DEBUG", "=== onBackPressed ===")
+        Log.d("DEBUG", "Режимы - Crop: $isCropMode, Filter: $isFilterMode, Rotate: $isRotateMode")
+        Log.d("DEBUG", "Фото до очистки: ${photoPaths.size}")
+
         when {
-            isCropMode -> exitCropModeWithoutSaving()
-            isFilterMode -> exitFilterModeWithoutSaving()
-            else -> super.onBackPressed()
+            isCropMode -> {
+                Log.d("DEBUG", "Выход из режима обрезки")
+                exitCropModeWithoutSaving()
+                // Остаемся в активити после отмены обрезки
+            }
+            isFilterMode -> {
+                Log.d("DEBUG", "Выход из режима фильтров")
+                exitFilterModeWithoutSaving()
+                // Остаемся в активити после отмены фильтров
+            }
+            isRotateMode -> {
+                Log.d("DEBUG", "Выход из режима поворота")
+                exitRotateModeWithoutSaving()
+                // Остаемся в активити после отмены поворота
+            }
+            else -> {
+                // ОЧИСТКА И ВЫХОД
+                Log.d("DEBUG", "Очистка данных и выход из активити")
+                clearAllData()
+                super.onBackPressed()
+            }
         }
+        Log.d("DEBUG", "Фото после обработки: ${photoPaths.size}")
+    }
+    private fun clearAllData() {
+        photoPaths.clear()
+        originalBitmaps.clear()
+        originalImagesBackup.clear()
+        adapter?.updateData(ArrayList())
+        Log.d("DEBUG", "PhotoViewPager данные очищены")
     }
 
     private fun enterFilterMode() {
@@ -751,9 +782,11 @@ class PhotoViewPagerActivity : AppCompatActivity() {
     }
     override fun onDestroy() {
         super.onDestroy()
-        viewPager.adapter = null
-       // Очищаем адаптер
         clearBackups()
+        if (isFinishing) {
+            clearAllData() //
+            viewPager.adapter = null
+    }
     }
 }
 
