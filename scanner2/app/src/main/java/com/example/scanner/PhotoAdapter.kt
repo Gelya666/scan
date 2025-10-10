@@ -46,19 +46,20 @@ class PhotoAdapter(
     }
     fun clearAllRotations() {
         // Восстанавливаем оригиналы для всех позиций
-        for (position in rotationStates.keys) {
-            originalImages[position]?.let { originalPath ->
-                try {
-                    File(originalPath).copyTo(File(photoPaths[position]), overwrite = true)
-                } catch (e: Exception) {
-                    // Игнорируем ошибки для отдельных файлов
+        for ((position, originalPath) in originalImages) {
+            try {
+                if (position in 0 until photoPaths.size) {
+                    val currentPath = photoPaths[position]
+                    File(originalPath).copyTo(File(currentPath), overwrite = true)
                 }
+            } catch (e: Exception) {
             }
         }
-
-        // Очищаем все повороты
         rotationStates.clear()
+        originalImages.clear()
         notifyDataSetChanged()
+
+        Toast.makeText(context, "Все повороты отменены", Toast.LENGTH_SHORT).show()
     }
 
     fun resetImageRotation(position: Int) {
@@ -78,27 +79,61 @@ class PhotoAdapter(
         }
     }
     fun saveOriginalImage(position: Int) {
-        if (position !in 0 until photoPaths.size) {
-            return
+       try{
+           val originalPath=photoPaths[position]
+           val backupDir =File(context.cacheDir,"backup_dir")
+           if(!backupDir.exists()){
+               backupDir.mkdirs()
+           }
+           val backupFile=File(backupDir,"original_${position}.jpg")
+          File(originalPath).copyTo(backupFile,true)
+           originalImages[position]=backupFile.absolutePath
+
+       }catch(e: Exception){
+           Log.e("Rotation", "Ошибка сохранения оригинала: ${e.message}")
+       }
         }
-            val originalFile = File(photoPaths[position])
-            val backupFile = File(originalFile.parent, "backup_${originalFile.name}")
-            originalFile.copyTo(backupFile, overwrite = true)
-            originalImages[position] = backupFile.absolutePath
+    fun cancelRotation(position: Int) {
+        if (position in 0 until photoPaths.size) {
+            originalImages[position]?.let { originalPath ->
+                try {
+                    // Восстанавливаем оригинальный файл
+                    val currentPath = photoPaths[position]
+                    File(originalPath).copyTo(File(currentPath), overwrite = true)
+
+                    // Очищаем состояние поворота
+                    rotationStates.remove(position)
+                    originalImages.remove(position)
+
+                    notifyItemChanged(position)
+                    Toast.makeText(context, "Поворот отменен", Toast.LENGTH_SHORT).show()
+
+                } catch (e: Exception) {
+                    Log.e("Rotation", "Ошибка отмены поворота: ${e.message}")
+                    Toast.makeText(context, "Ошибка отмены поворота", Toast.LENGTH_SHORT).show()
+                }
+            } ?: run {
+                // Если оригинала нет, просто сбрасываем состояние
+                rotationStates.remove(position)
+                notifyItemChanged(position)
+                Toast.makeText(context, "Поворот отменен", Toast.LENGTH_SHORT).show()
+            }
         }
-
-
-
-
+    }
     fun rotateImage(position:Int,degrees:Float=90f){
-        saveOriginalImage(position)
         if(position in 0 until photoPaths.size){
             val imagePath =photoPaths[position]
+
+            if(!originalImages.containsKey(position)){
+                saveOriginalImage(position)
+            }
             val currentRotation=rotationStates[position] ?: 0f
             val newRotation=(currentRotation+degrees)%360
+
             imageRotate.rotateImage(imagePath,degrees,object: ImageRotate.RotationListener{
                 override fun onRotationStarted(){}
-                override fun onRotationSuccess() { rotationStates[position]=newRotation
+                override fun onRotationSuccess() {
+                    rotationStates[position]=newRotation
                    notifyItemChanged(position)
                     Toast.makeText(context,"Изображение перевёрнуто успешно",Toast.LENGTH_SHORT).show()
                 }
@@ -108,6 +143,17 @@ class PhotoAdapter(
                 }
             } )
         }
+    }
+    fun saveRotation(position:Int){
+        val currentRotation=rotationStates[position] ?: 0f
+        if(currentRotation!=0f){
+            rotationStates.remove(position)
+        }
+        notifyItemChanged(position)
+
+    }
+    fun getCurrentRotation(position:Int):Float{
+        return rotationStates[position]?:0f
     }
 
     fun rotate90Clockwise(position:Int){
@@ -174,6 +220,7 @@ class PhotoAdapter(
         val filterType = filtersMap[position]?:PhotoFilters.FilterType.NONE
         val intensity = filterIntensityMap[position]?:1.0f
         holder.bind(photoPath,filterType,intensity,isCropMode)
+
     }
 
     override fun getItemCount(): Int = photoPaths.size

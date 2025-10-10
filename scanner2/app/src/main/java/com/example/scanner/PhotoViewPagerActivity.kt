@@ -1,6 +1,7 @@
 package com.example.scanner
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -136,7 +137,18 @@ class PhotoViewPagerActivity : AppCompatActivity() {
     private fun saveCurrentMode() {
         when {
             isFilterMode -> saveOnlyFilter()
+            isRotateMode->saveOnlyRotate()
         }
+    }
+    private fun saveOnlyRotate(){
+        adapter.saveRotation(currentPosition)
+        exitRotateMode()
+        Toast.makeText(this, "Поворот сохранен", Toast.LENGTH_SHORT).show()
+    }
+    @SuppressLint("SuspiciousIndentation")
+    private fun exitRotateMode(){
+    isRotateMode =false
+        updateSaveButton()
     }
 
     private fun saveOnlyFilter() {
@@ -428,8 +440,9 @@ class PhotoViewPagerActivity : AppCompatActivity() {
     }
 
     private fun exitRotateModeWithoutSaving() {
+        adapter.cancelRotation(currentPosition)
         isRotateMode = false
-        restoreRotateImage()
+        updateSaveButton()
         Toast.makeText(this, "Поворот отменена", Toast.LENGTH_SHORT).show()
     }
 
@@ -547,11 +560,6 @@ class PhotoViewPagerActivity : AppCompatActivity() {
         }
     }
 
-    private fun getLatestPhotoPath(): String? {
-        val pictureDir = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
-        return pictureDir?.listFiles()?.maxByOrNull { it.lastModified() }?.absolutePath
-    }
-
     private fun performCrop() {
         try {
             val currentPhotoPath = photoPaths[currentPosition]
@@ -599,8 +607,8 @@ class PhotoViewPagerActivity : AppCompatActivity() {
                 // Сохраняем
                 saveCroppedImage(croppedBitmap, currentPhotoPath)
                 originalBitmap.recycle()
-                showUndoButton()
-                setupUndoButton()
+                deleteBackupForPosition(currentPosition)
+                hideUndoButton()
                 exitCropMode()
 
                 Toast.makeText(this, "Фото обрезано!", Toast.LENGTH_SHORT).show()
@@ -767,10 +775,11 @@ class PhotoViewPagerActivity : AppCompatActivity() {
             // Показываем кнопку Отмена только если есть что отменять
             if (originalImagesBackup.isNotEmpty()) {
             btnUnd.visibility = View.VISIBLE
+        }else{
+            btnUnd.visibility =View.GONE
         }
     }
 }
-
     private fun hideUndoButton() {
         btnUnd.animate()
             .alpha(0f)
