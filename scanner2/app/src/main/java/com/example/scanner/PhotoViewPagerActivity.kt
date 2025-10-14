@@ -70,6 +70,8 @@ class PhotoViewPagerActivity : AppCompatActivity() {
     private var originalBitmaps: HashMap<Int, Bitmap> = HashMap()
     private var imageRotate = ImageRotate()
     private val originalImagesBackup = mutableMapOf<Int, String>()
+    private var isEditingMode = false
+
 
     private val takePicture =
         registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
@@ -493,6 +495,7 @@ class PhotoViewPagerActivity : AppCompatActivity() {
         }
         btnSave.setOnClickListener {
             saveCurrentMode()
+            showHalfScreenDialog()
         }
 
         btnCancelCrop.setOnClickListener {
@@ -788,6 +791,10 @@ class PhotoViewPagerActivity : AppCompatActivity() {
                 btnUnd.visibility = View.GONE
             }
             .start()
+    }
+    private fun showHalfScreenDialog() {
+        val dialog = HalfScreenDialogFragment.newInstance()
+        dialog.show(supportFragmentManager, "half_screen_dialog")
     }
     override fun onDestroy() {
         super.onDestroy()

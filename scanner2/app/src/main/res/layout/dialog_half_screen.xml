@@ -30,6 +30,7 @@
             android:layout_height="wrap_content"
             android:textStyle="bold"
             android:layout_marginTop="16dp"
+            android:textColor="@color/white"
             android:text="Save as" />
     </LinearLayout>
     <LinearLayout
@@ -73,6 +74,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="IMAGE"
+            android:textColor="#2196F3"
             app:shapeAppearance="@style/RoundedButton.Right"/>
     </com.google.android.material.button.MaterialButtonToggleGroup>
     <TextView
@@ -112,6 +114,7 @@
                 android:gravity="center"
                 android:layout_marginTop="4dp"
                 android:text="Share"
+                android:textColor="@color/white"
                 android:textStyle="bold" />
         </LinearLayout>
         <View
@@ -138,6 +141,7 @@
                 android:gravity="center"
                 android:layout_marginTop="4dp"
                 android:text="Add page"
+                android:textColor="@color/white"
                 android:textStyle="bold" />
         </LinearLayout>
         <View
@@ -163,6 +167,7 @@
                 android:gravity="center"
                 android:layout_marginTop="4dp"
                 android:text="Email"
+                android:textColor="@color/white"
                 android:textStyle="bold" />
             <View
                 android:layout_width="80dp"
