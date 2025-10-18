@@ -2,7 +2,9 @@ package com.example.scanner
 
 import android.Manifest
 import android.annotation.SuppressLint
+import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -101,6 +103,17 @@ class PhotoViewPagerActivity : AppCompatActivity() {
                 Toast.makeText(this, "Необходимо разрешение для фото", Toast.LENGTH_LONG).show()
             }
         }
+    fun saveImageToPdf(imagePath:ArrayList<String>){
+        val timeStamp =SimpleDateFormat("yyyyMMdd-HHmmss",Locale.getDefault()).format(Date())
+        val pdfFileName ="photos_$timeStamp.pdf"
+        val resultIntent= Intent().apply{
+            putStringArrayListExtra("imagePath_for_pdf",imagePath)
+            putExtra("pdf_file_name",pdfFileName)
+            putExtra("action","create_pdf")
+        }
+      setResult(RESULT_OK,resultIntent)
+        finish()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -793,7 +806,7 @@ class PhotoViewPagerActivity : AppCompatActivity() {
             .start()
     }
     private fun showHalfScreenDialog() {
-        val dialog = HalfScreenDialogFragment.newInstance()
+        val dialog = HalfScreenDialogFragment.newInstance(ArrayList())
         dialog.show(supportFragmentManager, "half_screen_dialog")
     }
     override fun onDestroy() {

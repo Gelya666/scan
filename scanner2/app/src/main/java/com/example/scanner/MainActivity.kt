@@ -242,6 +242,15 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
             }
         }
     }
+    override fun onSavePdf(imagePaths: ArrayList<String>) {
+        saveImageToPdf(imagePaths)
+    }
+    private fun saveImageToPdf(imagePaths: ArrayList<String>) {
+        // Реализация создания PDF
+        // Используйте библиотеки вроде iText или Android PDF Document API
+        Toast.makeText(this, "Сохранение ${imagePaths.size} изображений в PDF", Toast.LENGTH_SHORT).show()
+    }
+
 
 
     override fun onHide(filename: String) {
