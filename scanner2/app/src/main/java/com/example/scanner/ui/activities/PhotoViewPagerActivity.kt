@@ -1,9 +1,7 @@
-package com.example.scanner
+package com.example.scanner.ui.activities
 
 import android.Manifest
 import android.annotation.SuppressLint
-import android.app.Activity
-import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
@@ -26,6 +24,11 @@ import androidx.core.content.ContextCompat
 import androidx.core.content.FileProvider
 import androidx.recyclerview.widget.RecyclerView
 import androidx.viewpager2.widget.ViewPager2
+import com.example.scanner.PhotoFilters
+import com.example.scanner.R
+import com.example.scanner.ui.adapters.PhotoAdapter
+import com.example.scanner.ui.fragments.HalfScreenDialogFragment
+import com.example.scanner.viewmodel.ImageRotate
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
 import kotlinx.coroutines.CoroutineScope
@@ -39,9 +42,7 @@ import java.util.Date
 import java.util.Locale
 
 
-
 class PhotoViewPagerActivity : AppCompatActivity() {
-
     private lateinit var viewPager: ViewPager2
     private lateinit var tabLayout: TabLayout
     private lateinit var btnBack: Button
@@ -806,7 +807,7 @@ class PhotoViewPagerActivity : AppCompatActivity() {
             .start()
     }
     private fun showHalfScreenDialog() {
-        val dialog = HalfScreenDialogFragment.newInstance(ArrayList())
+        val dialog = HalfScreenDialogFragment.Companion.newInstance(ArrayList())
         dialog.show(supportFragmentManager, "half_screen_dialog")
     }
     override fun onDestroy() {

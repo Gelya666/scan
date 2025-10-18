@@ -1,9 +1,8 @@
-package com.example.scanner
+package com.example.scanner.ui.activities
 
 import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import android.graphics.pdf.PdfRenderer
-import android.net.Uri
 import android.os.Bundle
 import android.os.ParcelFileDescriptor
 import android.util.Log
@@ -19,6 +18,7 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
+import com.example.scanner.R
 import java.io.File
 import kotlin.math.abs
 

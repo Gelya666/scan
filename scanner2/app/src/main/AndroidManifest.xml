@@ -26,19 +26,19 @@
         android:theme="@style/Theme.Scanner"
         tools:targetApi="31">
         <activity
-            android:name=".PhotoViewPagerActivity"
+            android:name=".ui.activities.PhotoViewPagerActivity"
             android:exported="false" />
         <activity
-            android:name=".PdfFileActivity"
+            android:name=".ui.activities.PdfFileActivity"
             android:exported="false" />
         <activity
-            android:name=".ScreenPfilterAcitivty"
+            android:name=".ui.activities.ScreenPfilterAcitivty"
             android:exported="false" />
         <activity
-            android:name=".ScreenFileActivity"
+            android:name=".ui.activities.ScreenFileActivity"
             android:exported="false" />
         <activity
-            android:name=".MainActivity"
+            android:name=".ui.activities.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

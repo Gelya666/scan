@@ -1,4 +1,4 @@
-package com.example.scanner
+package com.example.scanner.viewmodel
 
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -21,16 +21,16 @@ class ImageRotate {
     fun rotateImage(imagePath:String,
                     degrees:Float=90f,
                     listener:RotationListener?=null){
-       CoroutineScope(Dispatchers.IO).launch{
+       CoroutineScope(Dispatchers.IO).launch {
            try {
-               withContext(Dispatchers.Main){
-                  listener?.onRotationStarted()
+               withContext(Dispatchers.Main) {
+                   listener?.onRotationStarted()
                }
                val originalBitmap = BitmapFactory.decodeFile(imagePath) ?: throw Exception ("Не удалось загрузить изображение")
                val matrix= Matrix()
                matrix.postRotate(degrees)
                val rotatedBitmap = Bitmap.createBitmap(originalBitmap,0,0,originalBitmap.width,originalBitmap.height,matrix,true)
-               FileOutputStream(imagePath).use{out->
+               FileOutputStream(imagePath).use{ out->
                    rotatedBitmap.compress(Bitmap.CompressFormat.JPEG,90,out)
                    originalBitmap.recycle()
                    rotatedBitmap.recycle()
@@ -40,8 +40,8 @@ class ImageRotate {
                }
            }catch(e: Exception) {
                Log.e("Rotate", "Ошибка поворота ${e.message}")
-               withContext(Dispatchers.Main){
-                   listener?.onRotationError(e.message ?:"Неизвестная ошибка")
+               withContext(Dispatchers.Main) {
+                   listener?.onRotationError(e.message ?: "Неизвестная ошибка")
                }
            }
        }

@@ -1,17 +1,17 @@
-package com.example.scanner
+package com.example.scanner.ui.fragments
 
 import android.content.Context
-import android.graphics.Color
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
 import android.view.Gravity
-import androidx.fragment.app.Fragment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
 import android.widget.Toast
 import androidx.fragment.app.DialogFragment
+import com.example.scanner.R
+import com.example.scanner.ui.activities.PhotoViewPagerActivity
 
 class HalfScreenDialogFragment : DialogFragment()
 {
@@ -81,7 +81,7 @@ class HalfScreenDialogFragment : DialogFragment()
             setBackgroundDrawable(ColorDrawable(0x80000000.toInt()))
 
             // Выравнивание по низу экрана
-            setGravity(android.view.Gravity.BOTTOM)
+            setGravity(Gravity.BOTTOM)
 
             // Анимация появления снизу
             setWindowAnimations(R.style.DialogAnimation)

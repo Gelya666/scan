@@ -1,22 +1,22 @@
-package com.example.scanner
+package com.example.scanner.ui.activities
 
 import android.annotation.SuppressLint
+import android.net.Uri
 import android.os.Bundle
+import android.provider.MediaStore
+import android.view.View
 import android.webkit.WebView
+import android.webkit.WebViewClient
+import android.widget.ProgressBar
+import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
-import android.net.Uri
-import android.provider.MediaStore
-import android.view.View
-import android.widget.Toast
-import android.webkit.WebViewClient
-import android.widget.ProgressBar
+import com.example.scanner.R
 import java.io.File
 
 class ScreenFileActivity : AppCompatActivity()
-
 {
     private lateinit var webView: WebView
     private lateinit var progressBar: ProgressBar
@@ -37,13 +37,11 @@ class ScreenFileActivity : AppCompatActivity()
             Toast.makeText(this, "Файл не выбран", Toast.LENGTH_SHORT).show()
             finish()
         }
-        webView.webViewClient = object :WebViewClient() {
+        webView.webViewClient = object : WebViewClient() {
             override fun onPageFinished(view: WebView?, url: String?) {
                 progressBar.visibility = View.GONE
             }
         }
-
-
     }
     @SuppressLint("SetJavaScriptEnabled")
     private fun loadPdfInWebView(uri: Uri) {
@@ -86,8 +84,6 @@ class ScreenFileActivity : AppCompatActivity()
         }
         return null
     }
-
-
 }
 
 

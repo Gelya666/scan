@@ -1,4 +1,4 @@
-package com.example.scanner
+package com.example.scanner.ui.fragments
 
 import android.app.AlertDialog
 import android.app.Dialog
@@ -6,6 +6,7 @@ import android.content.Context
 import android.os.Bundle
 import android.widget.Button
 import androidx.fragment.app.DialogFragment
+import com.example.scanner.R
 
 class FileOptionsDialogFragment: DialogFragment() {
     private lateinit var filename:String

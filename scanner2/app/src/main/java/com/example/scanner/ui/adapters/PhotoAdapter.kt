@@ -1,18 +1,20 @@
-package com.example.scanner
+package com.example.scanner.ui.adapters
 
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.graphics.Rect
 import android.util.Log
-import android.util.Log.e
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.Toast
-import androidx.camera.core.internal.utils.ImageUtil.rotateBitmap
 import androidx.recyclerview.widget.RecyclerView
+import com.example.scanner.viewmodel.ImageRotate
+import com.example.scanner.PhotoFilters
+import com.example.scanner.R
+import com.example.scanner.ui.customviews.SimpleCropOverlayView
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -35,8 +37,8 @@ class PhotoAdapter(
         filterIntensityMap[position] = intensity
         notifyItemChanged(position)
     }
-    fun getCurrentPosition(position:Int):PhotoFilters.FilterType{
-        return filtersMap[position]?:PhotoFilters.FilterType.NONE
+    fun getCurrentPosition(position:Int): PhotoFilters.FilterType{
+        return filtersMap[position]?: PhotoFilters.FilterType.NONE
     }
 
     fun clearFilter(position:Int){
@@ -81,11 +83,11 @@ class PhotoAdapter(
     fun saveOriginalImage(position: Int) {
        try{
            val originalPath=photoPaths[position]
-           val backupDir =File(context.cacheDir,"backup_dir")
+           val backupDir = File(context.cacheDir, "backup_dir")
            if(!backupDir.exists()){
                backupDir.mkdirs()
            }
-           val backupFile=File(backupDir,"original_${position}.jpg")
+           val backupFile= File(backupDir, "original_${position}.jpg")
           File(originalPath).copyTo(backupFile,true)
            originalImages[position]=backupFile.absolutePath
 
@@ -135,11 +137,11 @@ class PhotoAdapter(
                 override fun onRotationSuccess() {
                     rotationStates[position]=newRotation
                    notifyItemChanged(position)
-                    Toast.makeText(context,"Изображение перевёрнуто успешно",Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context,"Изображение перевёрнуто успешно", Toast.LENGTH_SHORT).show()
                 }
 
                 override fun onRotationError(error: String) {
-                    Toast.makeText(context,"Ошибка поврота:$error",Toast.LENGTH_SHORT).show()
+                    Toast.makeText(context,"Ошибка поврота:$error", Toast.LENGTH_SHORT).show()
                 }
             } )
         }
@@ -181,7 +183,7 @@ class PhotoAdapter(
             //}
         }
 
-        fun loadImageWithFilter(photoPath: String,filterType: PhotoFilters.FilterType,intensity: Float,isCropMode: Boolean) {
+        fun loadImageWithFilter(photoPath: String, filterType: PhotoFilters.FilterType, intensity: Float, isCropMode: Boolean) {
             CoroutineScope(Dispatchers.IO).launch {
                 try {
                     val options = BitmapFactory.Options().apply {
@@ -217,7 +219,7 @@ class PhotoAdapter(
     override fun onBindViewHolder(holder: PhotoViewHolder, position: Int) {
         // Загружаем и отображаем фото
         val photoPath = photoPaths[position]
-        val filterType = filtersMap[position]?:PhotoFilters.FilterType.NONE
+        val filterType = filtersMap[position]?: PhotoFilters.FilterType.NONE
         val intensity = filterIntensityMap[position]?:1.0f
         holder.bind(photoPath,filterType,intensity,isCropMode)
 
@@ -235,6 +237,3 @@ class PhotoAdapter(
         notifyDataSetChanged()
     }
 }
-
-
-
