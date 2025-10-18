@@ -1,5 +1,6 @@
 package com.example.scanner.ui.fragments
 
+import com.example.scanner.ui.activities.PagesEditor.PdfPagesEditorActivity
 import android.content.Context
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
@@ -11,7 +12,6 @@ import android.view.WindowManager
 import android.widget.Toast
 import androidx.fragment.app.DialogFragment
 import com.example.scanner.R
-import com.example.scanner.ui.activities.PhotoViewPagerActivity
 
 class HalfScreenDialogFragment : DialogFragment()
 {
@@ -88,7 +88,7 @@ class HalfScreenDialogFragment : DialogFragment()
         }
     }
     private fun saveAsPdf(){
-        (activity as? PhotoViewPagerActivity)?.saveImageToPdf(photoPaths)
+        (activity as? PdfPagesEditorActivity)?.saveImageToPdf()
     }
     interface PdfSaveListener {
         fun onSavePdf(imagePaths: ArrayList<String>)

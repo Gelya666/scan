@@ -11,10 +11,10 @@ import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
-import com.example.scanner.viewmodel.ImageRotate
 import com.example.scanner.PhotoFilters
 import com.example.scanner.R
 import com.example.scanner.ui.customviews.SimpleCropOverlayView
+import com.example.scanner.viewmodel.ImageRotate
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -37,49 +37,29 @@ class PhotoAdapter(
         filterIntensityMap[position] = intensity
         notifyItemChanged(position)
     }
-    fun getCurrentPosition(position:Int): PhotoFilters.FilterType{
-        return filtersMap[position]?: PhotoFilters.FilterType.NONE
-    }
 
     fun clearFilter(position:Int){
         filtersMap.remove(position)
         filterIntensityMap.remove(position)
         notifyItemChanged(position)
     }
-    fun clearAllRotations() {
-        // Восстанавливаем оригиналы для всех позиций
-        for ((position, originalPath) in originalImages) {
-            try {
-                if (position in 0 until photoPaths.size) {
-                    val currentPath = photoPaths[position]
-                    File(originalPath).copyTo(File(currentPath), overwrite = true)
-                }
-            } catch (e: Exception) {
-            }
-        }
-        rotationStates.clear()
-        originalImages.clear()
-        notifyDataSetChanged()
 
-        Toast.makeText(context, "Все повороты отменены", Toast.LENGTH_SHORT).show()
+    fun undo(){
+        Toast.makeText(context, "отменяем изменения по 1", Toast.LENGTH_SHORT).show()
     }
 
-    fun resetImageRotation(position: Int) {
-        if (position in 0 until photoPaths.size) {
-            originalImages[position]?.let { originalPath ->
-                try{
-                    File(originalPath).copyTo(File(photoPaths[position]), overwrite = true)
-                rotationStates[position] = 0f
-                notifyItemChanged(position) // Перезагрузит изображение с rotation=0
-                Toast.makeText(context, "Поворот сброшен", Toast.LENGTH_SHORT).show()
-                } catch (e: Exception) {
-                    Toast.makeText(context, "Ошибка: ${e.message}", Toast.LENGTH_SHORT).show()
-                }
-            } ?: run {
-                Toast.makeText(context, "Нет оригинала для сброса", Toast.LENGTH_SHORT).show()
-            }
-        }
+    fun redo(){
+        Toast.makeText(context, "возвращаем изменения по 1", Toast.LENGTH_SHORT).show()
     }
+
+    fun hasAnyChanges() : Boolean {
+        return false
+    }
+
+    fun hasAnyChangesUndone() : Boolean {
+        return false
+    }
+
     fun saveOriginalImage(position: Int) {
        try{
            val originalPath=photoPaths[position]
@@ -88,13 +68,13 @@ class PhotoAdapter(
                backupDir.mkdirs()
            }
            val backupFile= File(backupDir, "original_${position}.jpg")
-          File(originalPath).copyTo(backupFile,true)
+           File(originalPath).copyTo(backupFile,true)
            originalImages[position]=backupFile.absolutePath
 
        }catch(e: Exception){
            Log.e("Rotation", "Ошибка сохранения оригинала: ${e.message}")
        }
-        }
+    }
     fun cancelRotation(position: Int) {
         if (position in 0 until photoPaths.size) {
             originalImages[position]?.let { originalPath ->
@@ -154,17 +134,6 @@ class PhotoAdapter(
         notifyItemChanged(position)
 
     }
-    fun getCurrentRotation(position:Int):Float{
-        return rotationStates[position]?:0f
-    }
-
-    fun rotate90Clockwise(position:Int){
-        rotateImage(position,-90f)
-    }
-    fun rotate90CounterClockwise(position:Int){
-        rotateImage(position,90f)
-    }
-
 
     // Внутренний класс для хранения View
     inner class PhotoViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {

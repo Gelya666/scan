@@ -1,5 +1,6 @@
 package com.example.scanner.ui.activities
 
+import com.example.scanner.ui.activities.PagesEditor.PdfPagesEditorActivity
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -44,7 +45,7 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
             allPhotoPaths.add(currentPhotoPath)
             Log.d("CameraDebug", "Фото сохранено: $photoUri")
             Toast.makeText(this, "Фото сделано", Toast.LENGTH_SHORT).show()
-            goToPhotoViewPagerActivity()
+            goToPdfPagesEditorActivity()
         } else {
             Log.e("CameraDebug", "Фото не сделано")
             Toast.makeText(this, "Фото не сделано", Toast.LENGTH_SHORT).show()
@@ -143,8 +144,8 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
         return File.createTempFile("JPEG_${timeStamp}_", ".jpg", storageDir)
     }
 
-    private fun goToPhotoViewPagerActivity() {
-        val intent = Intent(this, PhotoViewPagerActivity::class.java).apply {
+    private fun goToPdfPagesEditorActivity() {
+        val intent = Intent(this, PdfPagesEditorActivity::class.java).apply {
             putStringArrayListExtra("photo_paths", ArrayList(allPhotoPaths))
             putExtra("current_position", allPhotoPaths.size - 1)
         }

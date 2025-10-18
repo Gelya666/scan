@@ -26,16 +26,10 @@
         android:theme="@style/Theme.Scanner"
         tools:targetApi="31">
         <activity
-            android:name=".ui.activities.PhotoViewPagerActivity"
+            android:name=".ui.activities.PagesEditor.PdfPagesEditorActivity"
             android:exported="false" />
         <activity
             android:name=".ui.activities.PdfFileActivity"
-            android:exported="false" />
-        <activity
-            android:name=".ui.activities.ScreenPfilterAcitivty"
-            android:exported="false" />
-        <activity
-            android:name=".ui.activities.ScreenFileActivity"
             android:exported="false" />
         <activity
             android:name=".ui.activities.MainActivity"

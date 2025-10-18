@@ -9,7 +9,7 @@ import android.provider.MediaStore
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import com.example.scanner.ui.activities.PhotoViewPagerActivity
+import com.example.scanner.ui.activities.PagesEditor.PdfPagesEditorActivity
 import java.io.ByteArrayOutputStream
 
 class CameraManager(val activity: Activity) {
@@ -51,7 +51,7 @@ class CameraManager(val activity: Activity) {
                 val stream = ByteArrayOutputStream()
                 imageBitmap.compress(Bitmap.CompressFormat.PNG, 100, stream)
                 val byteArray = stream.toByteArray()
-                val intent = Intent(activity, PhotoViewPagerActivity::class.java)
+                val intent = Intent(activity, PdfPagesEditorActivity::class.java)
                 intent.putExtra("image_bites", byteArray)
                 activity.startActivity(intent)
             } else {
