@@ -17,6 +17,7 @@ import com.example.scanner.databinding.ActivityMainBinding
 import com.example.scanner.service.CameraManager
 import com.example.scanner.ui.activities.PagesEditor.PdfPagesEditorActivity
 import com.example.scanner.ui.fragments.FileOptionsDialogFragment
+import com.example.scanner.utils.getFormattedStackTrace
 import java.io.File
 import java.io.IOException
 import java.text.SimpleDateFormat
@@ -47,6 +48,7 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
 
     private val takePicture = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
         //условнфй оператор if c параметрам succsecc типа bollean
+        Log.d("Angel","take picture result ${success}    ${Thread.currentThread().getFormattedStackTrace()}")
         if (success) {
             //вызов метода add c параметрами currentPhotoPath типа String который принадлежит перменной
             // allPhotoPaths. типа  MutableList<String> поле класса MainActivity
@@ -106,7 +108,9 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
 
     // создание пдф из фото
     private fun createPdfFromPhoto() {
-        cameraManager.openCamera()
+        if(!cameraManager.checkCameraPermission()){
+            cameraManager.requestCameraPermission()
+        }
         try {
             val photoFile = createImageFile()
             currentPhotoPath = photoFile.absolutePath

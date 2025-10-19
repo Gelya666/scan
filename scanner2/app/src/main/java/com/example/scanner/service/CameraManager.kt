@@ -11,6 +11,7 @@ import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import com.example.scanner.ui.activities.PagesEditor.PdfPagesEditorActivity
+import com.example.scanner.utils.getFormattedStackTrace
 import java.io.ByteArrayOutputStream
 
 class CameraManager(val activity: Activity) {
@@ -25,7 +26,7 @@ class CameraManager(val activity: Activity) {
         if (checkCameraPermission()) {
             val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
             try {
-                Log.d("Angel","код ответа ${REQUEST_IMAGE_CAPTURE}")
+                Log.d("Angel","открытие камеры ${REQUEST_IMAGE_CAPTURE}   ${Thread.currentThread().getFormattedStackTrace()}")
                 //??принадлежит ли метод startActivityForResult  перменной activity
                 activity.startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE)
             } catch (e: Exception) {
