@@ -7,7 +7,7 @@ sealed interface PhotoViewPagerState {
     fun enter()
     fun exit()
     fun onBackPressed(): Boolean
-    fun onSaveClicked()
+    fun onApplyClicked()
     fun updateUI()
     fun handleEvent(event: ViewPagerEvent)
 }

@@ -22,8 +22,8 @@ class CropState(override val activity: PdfPagesEditorActivity) : PhotoViewPagerS
     }
 
     override fun exit() {
-        activity.adapter.setCropMode(false)
         activity.viewPager.isUserInputEnabled = true
+        activity.adapter.setCropMode(false)
     }
 
     override fun onBackPressed(): Boolean {
@@ -31,7 +31,7 @@ class CropState(override val activity: PdfPagesEditorActivity) : PhotoViewPagerS
         return true
     }
 
-    override fun onSaveClicked() {
+    override fun onApplyClicked() {
         performCrop()
         activity.transitionTo(NormalState(activity))
     }

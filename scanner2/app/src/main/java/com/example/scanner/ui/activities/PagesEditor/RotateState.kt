@@ -8,6 +8,7 @@ class RotateState(override val activity: PdfPagesEditorActivity) : PhotoViewPage
     override fun enter() {
         rotateCurrentImage()
         updateUI()
+        activity.transitionTo(NormalState(activity))
     }
 
     override fun exit() {
@@ -19,8 +20,7 @@ class RotateState(override val activity: PdfPagesEditorActivity) : PhotoViewPage
         return true
     }
 
-    override fun onSaveClicked() {
-        saveOnlyRotate()
+    override fun onApplyClicked() {
         activity.transitionTo(NormalState(activity))
     }
 
@@ -40,12 +40,10 @@ class RotateState(override val activity: PdfPagesEditorActivity) : PhotoViewPage
     }
 
     private fun saveOnlyRotate() {
-        activity.adapter.saveRotation(stateData.currentPosition)
         Toast.makeText(activity, "Поворот сохранен", Toast.LENGTH_SHORT).show()
     }
 
     private fun exitRotateModeWithoutSaving() {
-        activity.adapter.cancelRotation(stateData.currentPosition)
         Toast.makeText(activity, "Поворот отменен", Toast.LENGTH_SHORT).show()
     }
 }

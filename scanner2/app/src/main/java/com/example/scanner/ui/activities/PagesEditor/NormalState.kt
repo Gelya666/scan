@@ -21,8 +21,8 @@ class NormalState(override val activity: PdfPagesEditorActivity) : PhotoViewPage
         return false
     }
 
-    override fun onSaveClicked() {
-        activity.showHalfScreenDialog()
+    override fun onApplyClicked() {
+
     }
 
     override fun updateUI() {

@@ -36,7 +36,7 @@ class FilterState(override val activity: PdfPagesEditorActivity) : PhotoViewPage
         return true
     }
 
-    override fun onSaveClicked() {
+    override fun onApplyClicked() {
         saveFilterChanges()
         activity.transitionTo(NormalState(activity))
     }

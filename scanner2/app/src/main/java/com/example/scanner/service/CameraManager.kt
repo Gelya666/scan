@@ -6,6 +6,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.provider.MediaStore
+import android.util.Log
 import android.widget.Toast
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -24,6 +25,8 @@ class CameraManager(val activity: Activity) {
         if (checkCameraPermission()) {
             val takePictureIntent = Intent(MediaStore.ACTION_IMAGE_CAPTURE)
             try {
+                Log.d("Angel","код ответа ${REQUEST_IMAGE_CAPTURE}")
+                //??принадлежит ли метод startActivityForResult  перменной activity
                 activity.startActivityForResult(takePictureIntent, REQUEST_IMAGE_CAPTURE)
             } catch (e: Exception) {
                 Toast.makeText(activity, "Camera app not found!!!", Toast.LENGTH_SHORT).show()

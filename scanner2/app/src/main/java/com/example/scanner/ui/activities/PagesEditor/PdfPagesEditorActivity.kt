@@ -111,15 +111,18 @@ class PdfPagesEditorActivity : AppCompatActivity() {
     }
 
     private fun setupButtons() {
-        btnExit.setOnClickListener { handleEvent(ViewPagerEvent.BackClicked) }
+        btnExit.setOnClickListener { exitEditMode() }
+        btnSave.setOnClickListener { showHalfScreenDialog() }
+
         btnUndo.setOnClickListener { handleEvent(ViewPagerEvent.UndoClicked) }
         btnRedo.setOnClickListener { handleEvent(ViewPagerEvent.RedoClicked) }
+
+        btnApply.setOnClickListener { handleEvent(ViewPagerEvent.ApplyClicked) }
+        btnReturnToNormalMode.setOnClickListener { returnToNormalState() }
+
         btnFilters.setOnClickListener { handleEvent(ViewPagerEvent.FilterClicked) }
         btnRotate.setOnClickListener { handleEvent(ViewPagerEvent.RotateClicked) }
         btnCrop.setOnClickListener { handleEvent(ViewPagerEvent.CropClicked) }
-        btnApply.setOnClickListener { handleEvent(ViewPagerEvent.SaveClicked) }
-        btnSave.setOnClickListener { handleEvent(ViewPagerEvent.SaveClicked) }
-        btnReturnToNormalMode.setOnClickListener { handleEvent(ViewPagerEvent.CancelCropClicked) }
         btnAddPage.setOnClickListener { handleEvent(ViewPagerEvent.AddPageClicked) }
     }
 
@@ -162,48 +165,50 @@ class PdfPagesEditorActivity : AppCompatActivity() {
                     })
                 }
             }
-            is ViewPagerEvent.SaveClicked -> currentState.onSaveClicked()
-            is ViewPagerEvent.BackClicked -> exitEditMode()
+            is ViewPagerEvent.ApplyClicked -> currentState.onApplyClicked()
             is ViewPagerEvent.UndoClicked -> adapter.undo()
             is ViewPagerEvent.RedoClicked -> adapter.redo()
             else -> currentState.handleEvent(event)
         }
-        updateAllUI()
     }
 
     fun updateAllUI(){
         btnRedo.visibility = if (adapter.hasAnyChangesUndone()) View.VISIBLE else View.GONE
         btnUndo.visibility = if (adapter.hasAnyChanges()) View.VISIBLE else View.GONE
-        btnApply.visibility = if (currentState is CropState) View.VISIBLE else View.GONE
 
         btnExit.visibility = if (currentState is NormalState) View.VISIBLE else View.GONE
         btnSave.visibility = if (currentState is NormalState) View.VISIBLE else View.GONE
 
         btnReturnToNormalMode.visibility = if (currentState is NormalState) View.GONE else View.VISIBLE
+        btnApply.visibility = if (currentState is CropState) View.VISIBLE else View.GONE
     }
     // UI Update methods only
     fun updateNormalUI() {
         filterPanel.visibility = View.GONE
         intensityPanel.visibility = View.GONE
+        updateAllUI()
     }
 
     fun updateCropUI() {
         filterPanel.visibility = View.GONE
         intensityPanel.visibility = View.GONE
+        updateAllUI()
     }
 
     fun updateFilterUI() {
         btnSave.setBackgroundColor(ContextCompat.getColor(this, R.color.color_filter))
         // Filter panel visibility is managed by FilterState
+        updateAllUI()
     }
 
     fun updateRotateUI() {
-        btnSave.text = "Save"
-        btnSave.visibility = View.VISIBLE
-        btnSave.setBackgroundColor(ContextCompat.getColor(this, R.color.color_primary))
-        btnReturnToNormalMode.visibility = View.GONE
         filterPanel.visibility = View.GONE
         intensityPanel.visibility = View.GONE
+        updateAllUI()
+    }
+
+    private fun returnToNormalState(){
+        transitionTo(NormalState(this))
     }
 
     private fun exitEditMode() {
