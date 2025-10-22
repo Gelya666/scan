@@ -141,6 +141,8 @@ class PdfPagesEditorActivity : AppCompatActivity() {
     fun transitionTo(newState: PhotoViewPagerState) {
         currentState.exit()
         currentState = newState
+        // Должно быть: newState.stateData.currentPosition = currentState.stateData.currentPosition
+        // Пример: сохранить номер страницы при переходе между состояниями
         currentState.stateData.currentPosition = currentState.stateData.currentPosition
         currentState.enter()
     }

@@ -26,7 +26,6 @@ class PhotoAdapter(
     private var photoPaths: List<String>,
     private var isCropMode: Boolean = false
 ): RecyclerView.Adapter <PhotoAdapter.PhotoViewHolder>() {
-
     inner class PhotoViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val imageView: ImageView = itemView.findViewById(R.id.photoImageView)
         val cropOverlay: SimpleCropOverlayView = itemView.findViewById(R.id.cropOverlay)
