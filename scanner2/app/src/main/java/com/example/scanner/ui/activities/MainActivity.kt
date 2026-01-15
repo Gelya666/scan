@@ -125,7 +125,6 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
     }
     private fun openPdfFile(uri: Uri){
         val inputStream = contentResolver.openInputStream(uri)
-
         inputStream?.use { stream ->
             try {
                 val bytes = stream.readBytes()

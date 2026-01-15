@@ -40,6 +40,15 @@ android {
 
 dependencies {
     val camerax_version = "1.5.0"
+    implementation("com.itextpdf:itext7-core:7.2.5")
+// ИЛИ более лёгкая версия (рекомендую для начала):
+    implementation("com.itextpdf:kernel:7.2.5")
+    implementation("com.itextpdf:io:7.2.5")
+    implementation("com.itextpdf:layout:7.2.5")
+// Для работы с изображениями в PDF
+    implementation("com.itextpdf:pdfa:7.2.5")
+// AndroidPdfViewer для отображения PDF
+    implementation("com.github.barteksc:android-pdf-viewer:3.2.0-beta.1")
     implementation("jp.co.cyberagent.android:gpuimage:2.1.0")
     implementation("androidx.camera:camera-core:${camerax_version}")
     implementation("androidx.camera:camera-camera2:${camerax_version}")

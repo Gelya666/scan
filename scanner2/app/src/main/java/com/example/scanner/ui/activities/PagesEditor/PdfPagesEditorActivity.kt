@@ -5,6 +5,7 @@ import android.content.Intent
 import android.content.pm.PackageManager
 import android.os.Bundle
 import android.os.Environment
+import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.ImageButton
@@ -23,6 +24,10 @@ import com.example.scanner.ui.adapters.PhotoAdapter
 import com.example.scanner.ui.fragments.HalfScreenDialogFragment
 import com.google.android.material.tabs.TabLayout
 import com.google.android.material.tabs.TabLayoutMediator
+import com.itextpdf.io.image.ImageDataFactory
+import com.itextpdf.kernel.pdf.PdfDocument
+import com.itextpdf.kernel.pdf.PdfWriter
+import com.itextpdf.layout.element.Image
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -263,7 +268,6 @@ class PdfPagesEditorActivity : AppCompatActivity() {
             currentPhotoFile = null
         }
     }
-
     private fun onPermissionResult(isGranted: Boolean) {
         if (isGranted) {
             takePhoto()
@@ -271,29 +275,56 @@ class PdfPagesEditorActivity : AppCompatActivity() {
             Toast.makeText(this, "Необходимо разрешение для фото", Toast.LENGTH_LONG).show()
         }
     }
-
     fun clearAllData() {
         photoPaths.clear()
         adapter.updateData(ArrayList())
     }
-
     fun saveImageToPdf() {
         val timeStamp = SimpleDateFormat("yyyyMMdd-HHmmss", Locale.getDefault()).format(Date())
         val pdfFileName = "photos_$timeStamp.pdf"
-        val resultIntent = Intent().apply {
-            putStringArrayListExtra("imagePath_for_pdf", photoPaths)
-            putExtra("pdf_file_name", pdfFileName)
-            putExtra("action", "create_pdf")
+        val pdfFilePath = createAndSavePdfNow(photoPaths, pdfFileName)
+        if (pdfFilePath != null && File(pdfFilePath).exists()) {
+            val intent = Intent(this, MainActivity::class.java).apply {
+                putExtra("pdf_file_path", pdfFilePath)
+                putExtra("pdf_file_name", pdfFileName)
+            }
+                startActivity(intent)
+                finish()
+        } else {
+            Toast.makeText(this, "Ошибка создания PDF", Toast.LENGTH_SHORT).show()
         }
-        setResult(RESULT_OK, resultIntent)
-        finish()
     }
-
+    private fun createAndSavePdfNow(imagePaths: ArrayList<String>,fileName: String):String?{
+        return try{
+            val pdfFile = File(cacheDir, fileName)
+            val pdfDocument =PdfDocument(
+                PdfWriter(pdfFile)
+            )
+            val document = com.itextpdf.layout.Document(pdfDocument)
+            for (imagePath in imagePaths){
+                try {
+                    val imageData = ImageDataFactory.create(imagePath)
+                    val image=Image(imageData)
+                    // Настраиваем размер
+                    image.scaleToFit(500f, 500f)
+                    image.setHorizontalAlignment(com.itextpdf.layout.properties.HorizontalAlignment.CENTER)
+                    document.add(image)
+                    document.add(com.itextpdf.layout.element.Paragraph("\n"))
+                } catch (e: Exception) {
+                    Log.e("PDF", "Ошибка добавления изображения $imagePath: ${e.message}")
+                }
+            }
+            document.close()
+            pdfFile.absolutePath
+        } catch (e: Exception) {
+            Log.e("PDF", "Ошибка создания PDF: ${e.message}")
+            null
+        }
+    }
     fun showHalfScreenDialog() {
         val dialog = HalfScreenDialogFragment.newInstance(ArrayList())
         dialog.show(supportFragmentManager, "half_screen_dialog")
     }
-
     override fun onDestroy() {
         super.onDestroy()
         // Clear backups from all states

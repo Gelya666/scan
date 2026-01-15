@@ -252,8 +252,8 @@
             android:id="@+id/btn_pdf"
             android:layout_width="48dp"
             android:layout_height="48dp"
-            android:src="@drawable/pdf_small"
-            android:contentDescription="Нажать на PDF файл" />
+            android:contentDescription="Нажать на PDF файл"
+            android:src="@drawable/pdf_small" />
 
         <TextView
             android:layout_width="wrap_content"
@@ -265,10 +265,11 @@
             android:textAlignment="center" />
 
     </LinearLayout>
+
     <com.rajat.pdfviewer.PdfRendererView
         android:id="@+id/pdfView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        tools:layout_editor_absoluteX="-189dp"
-        tools:layout_editor_absoluteY="177dp" />
+        tools:layout_editor_absoluteX="0dp"
+        tools:layout_editor_absoluteY="1dp" />
 </androidx.constraintlayout.widget.ConstraintLayout>

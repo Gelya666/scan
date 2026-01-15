@@ -14,7 +14,7 @@ import com.example.scanner.ui.activities.PagesEditor.PdfPagesEditorActivity
 import com.example.scanner.utils.getFormattedStackTrace
 import java.io.ByteArrayOutputStream
 
-class CameraManager(val activity: Activity) {
+class CameraManager(val activity: Activity){
 
     companion object {
         private const val REQUEST_CAMERA_PERMISSION = 100
