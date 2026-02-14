@@ -1,0 +1,73 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/viewBackgroundSec"
+    android:layout_width="402dp"
+    android:layout_height="98dp"
+    android:layout_marginTop="16dp"
+    android:background="@drawable/rectangle_shape2"
+    android:clickable="true"
+    android:focusable="true"
+    android:foreground="?android:attr/selectableItemBackground"
+    app:layout_constraintEnd_toEndOf="parent"
+    app:layout_constraintHorizontal_bias="0.444"
+    app:layout_constraintStart_toStartOf="parent"
+    app:layout_constraintTop_toTopOf="parent">
+    <!-- Текст с названием PDF файла -->
+
+    <TextView
+        android:id="@+id/textPdfName"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:text="Название PDF файла"
+        android:textSize="18sp"
+        android:textStyle="bold" />
+    <ImageButton
+        android:id="@+id/points"
+        android:layout_width="68dp"
+        android:layout_height="35dp"
+        android:contentDescription="Нажать на иконку"
+        android:scaleType="centerCrop"
+        app:srcCompat="@drawable/points_small" />
+
+    <ImageView
+        android:id="@+id/download"
+        android:layout_width="63dp"
+        android:layout_height="23dp"
+        android:layout_marginTop="60dp"
+        app:srcCompat="@drawable/download" />
+
+    <ImageView
+        android:id="@+id/iconPdfFirstScreen"
+        android:layout_width="24dp"
+        android:layout_height="24dp"
+        android:layout_gravity="center|end"
+        android:layout_marginEnd="8dp"
+        app:srcCompat="@drawable/___pngtree___no_avatar_vector_isolated_on_4979074_2" />
+
+    <TextView
+        android:id="@+id/textDate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="left|center|bottom"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:text="Время создания PDF файла"
+        android:textSize="10sp"
+        android:textStyle="bold" />
+    <TextView
+        android:id="@+id/textSize"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="right|center|bottom"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:text="Размер PDF файла"
+        android:textSize="10sp"
+        android:textStyle="bold" />
+
+</FrameLayout>

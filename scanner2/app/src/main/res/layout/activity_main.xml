@@ -29,29 +29,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <View
-        android:id="@+id/viewBackground"
-        android:layout_width="394dp"
-        android:layout_height="95dp"
-        android:layout_marginTop="160dp"
-        android:background="@drawable/rectangle_shape2"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.411"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintVertical_bias="0.0" />
-
-    <View
-        android:id="@+id/viewBackgroundSec"
-        android:layout_width="394dp"
-        android:layout_height="95dp"
-        android:layout_marginTop="280dp"
-        android:background="@drawable/rectangle_shape2"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.764"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
     <TextView
         android:id="@+id/textScanner"
         android:layout_width="155dp"
@@ -64,127 +41,6 @@
         android:textStyle="bold"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.546"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <ImageButton
-        android:id="@+id/points"
-        android:layout_width="46dp"
-        android:layout_height="28dp"
-        android:layout_marginTop="188dp"
-        android:scaleType="centerCrop"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.956"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        android:contentDescription="Нажать на иконку"
-        app:srcCompat="@drawable/points_small" />
-
-
-    <ImageView
-        android:id="@+id/download"
-        android:layout_width="46dp"
-        android:layout_height="28dp"
-        android:layout_marginTop="188dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.83"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/download" />
-
-    <ImageView
-        android:id="@+id/download_second"
-        android:layout_width="46dp"
-        android:layout_height="28dp"
-        android:layout_marginTop="316dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.83"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/download" />
-
-    <ImageView
-        android:id="@+id/photo_second"
-        android:layout_width="102dp"
-        android:layout_height="79dp"
-        android:layout_marginTop="296dp"
-        android:adjustViewBounds="true"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.042"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/___pngtree___no_avatar_vector_isolated_on_4979074_2" />
-
-    <ImageView
-        android:id="@+id/photo"
-        android:layout_width="102dp"
-        android:layout_height="79dp"
-        android:layout_marginTop="172dp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.05"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/___pngtree___no_avatar_vector_isolated_on_4979074_2" />
-
-    <ImageButton
-        android:id="@+id/points_sec"
-        android:layout_width="46dp"
-        android:layout_height="28dp"
-        android:layout_marginTop="316dp"
-        android:contentDescription="Нажать на иконку"
-        android:scaleType="centerCrop"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.956"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@drawable/points_small" />
-
-    <View
-        android:id="@+id/shapePDF"
-        android:layout_width="44dp"
-        android:layout_height="15dp"
-        android:layout_marginTop="172dp"
-        android:background="@drawable/rectangle_shapepdf"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.201"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <View
-        android:id="@+id/shapePDFsecond"
-        android:layout_width="44dp"
-        android:layout_height="15dp"
-        android:layout_marginTop="16dp"
-        android:background="@drawable/rectangle_shapepdf"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.201"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="@+id/viewBackgroundSec" />
-
-    <TextView
-        android:id="@+id/textPDF"
-        android:layout_width="28dp"
-        android:layout_height="17dp"
-        android:layout_marginTop="172dp"
-        android:fontFamily="@font/fonts"
-        android:text="PDF"
-        android:textColor="#FFFFFF"
-        android:textSize="10sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.22"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <TextView
-        android:id="@+id/textPDF2"
-        android:layout_width="29dp"
-        android:layout_height="14dp"
-        android:layout_marginTop="296dp"
-        android:text="PDF"
-        android:textColor="#FFFFFF"
-        android:textSize="10sp"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.217"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
@@ -265,11 +121,14 @@
             android:textAlignment="center" />
 
     </LinearLayout>
-
-    <com.rajat.pdfviewer.PdfRendererView
-        android:id="@+id/pdfView"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        tools:layout_editor_absoluteX="0dp"
-        tools:layout_editor_absoluteY="1dp" />
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recView"
+        android:layout_width="408dp"
+        android:layout_height="570dp"
+        app:layout_constraintBottom_toTopOf="@+id/btn_camera"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toBottomOf="@+id/textScanner"
+        app:layout_constraintVertical_bias="0.0" />
 </androidx.constraintlayout.widget.ConstraintLayout>

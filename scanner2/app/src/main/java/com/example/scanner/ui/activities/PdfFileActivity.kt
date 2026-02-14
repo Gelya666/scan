@@ -35,7 +35,6 @@ class PdfFileActivity : AppCompatActivity() {
     private var currentPageIndex = 0
     private var pageCount = 0
     private var pdfFile: File? = null
-
     @SuppressLint("ClickableViewAccessibility")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

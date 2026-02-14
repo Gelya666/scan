@@ -106,7 +106,6 @@ class PhotoAdapter(
     fun hasAnyChangesUndone() : Boolean {
         return false
     }
-
     fun saveOriginalImage(position: Int) {
        try{
            val originalPath=photoPaths[position]
@@ -122,12 +121,10 @@ class PhotoAdapter(
            Log.e("Rotation", "Ошибка сохранения оригинала: ${e.message}")
        }
     }
-
     fun setCropMode(value: Boolean){
         this.isCropMode = value
         notifyDataSetChanged()
     }
-
     fun rotateImage(position:Int,degrees:Float=90f){
         if(position in 0 until photoPaths.size){
             val imagePath =photoPaths[position]
@@ -156,21 +153,18 @@ class PhotoAdapter(
             })
         }
     }
-
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PhotoViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_photo, parent, false)
         return PhotoViewHolder(view)
     }
-
-    override fun onBindViewHolder(holder: PhotoViewHolder, position: Int) {
+    override fun onBindViewHolder(holder: PhotoViewHolder, position:Int) {
         // Загружаем и отображаем фото
         val photoPath = photoPaths[position]
         val filterType = filtersMap[position]?: PhotoFilters.FilterType.NONE
         val intensity = filterIntensityMap[position]?:1.0f
         holder.bind(photoPath,filterType,intensity,isCropMode)
     }
-
     fun updateData(newPhotoPath: List<String>) {
         this.photoPaths = newPhotoPath
         notifyDataSetChanged()

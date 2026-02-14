@@ -1,10 +1,13 @@
 package com.example.scanner.ui.activities.PagesEditor
 
 import android.Manifest
+import android.content.ContentValues
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
+import android.provider.MediaStore
 import android.util.Log
 import android.view.View
 import android.widget.Button
@@ -27,7 +30,10 @@ import com.google.android.material.tabs.TabLayoutMediator
 import com.itextpdf.io.image.ImageDataFactory
 import com.itextpdf.kernel.pdf.PdfDocument
 import com.itextpdf.kernel.pdf.PdfWriter
+import com.itextpdf.layout.Document
 import com.itextpdf.layout.element.Image
+import com.itextpdf.layout.element.Paragraph
+import com.itextpdf.layout.properties.HorizontalAlignment
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -243,7 +249,6 @@ class PdfPagesEditorActivity : AppCompatActivity() {
             takePicture.launch(photoUri)
         }
     }
-
     private fun createImageFile(): File? {
         return try {
             val timeStamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
@@ -254,7 +259,6 @@ class PdfPagesEditorActivity : AppCompatActivity() {
             null
         }
     }
-
     private fun onTakePictureResult(success: Boolean) {
         if (success) {
             currentPhotoFile?.let { photoFile ->
@@ -283,7 +287,7 @@ class PdfPagesEditorActivity : AppCompatActivity() {
         val timeStamp = SimpleDateFormat("yyyyMMdd-HHmmss", Locale.getDefault()).format(Date())
         val pdfFileName = "photos_$timeStamp.pdf"
         val pdfFilePath = createAndSavePdfNow(photoPaths, pdfFileName)
-        if (pdfFilePath != null && File(pdfFilePath).exists()) {
+        if (pdfFilePath != null ) {
             val intent = Intent(this, MainActivity::class.java).apply {
                 putExtra("pdf_file_path", pdfFilePath)
                 putExtra("pdf_file_name", pdfFileName)
@@ -294,28 +298,48 @@ class PdfPagesEditorActivity : AppCompatActivity() {
             Toast.makeText(this, "Ошибка создания PDF", Toast.LENGTH_SHORT).show()
         }
     }
-    private fun createAndSavePdfNow(imagePaths: ArrayList<String>,fileName: String):String?{
+    private fun createAndSavePdfNow(imagePaths: ArrayList<String>,fileName: String):Uri?{
         return try{
-            val pdfFile = File(cacheDir, fileName)
-            val pdfDocument =PdfDocument(
-                PdfWriter(pdfFile)
-            )
-            val document = com.itextpdf.layout.Document(pdfDocument)
-            for (imagePath in imagePaths){
-                try {
-                    val imageData = ImageDataFactory.create(imagePath)
-                    val image=Image(imageData)
-                    // Настраиваем размер
-                    image.scaleToFit(500f, 500f)
-                    image.setHorizontalAlignment(com.itextpdf.layout.properties.HorizontalAlignment.CENTER)
-                    document.add(image)
-                    document.add(com.itextpdf.layout.element.Paragraph("\n"))
-                } catch (e: Exception) {
-                    Log.e("PDF", "Ошибка добавления изображения $imagePath: ${e.message}")
-                }
+            val contentValues=ContentValues().apply{
+                put(MediaStore.Files.FileColumns.DISPLAY_NAME,fileName)
+                put(MediaStore.Files.FileColumns.MIME_TYPE,"application/pdf")
+                put(MediaStore.Files.FileColumns.DATE_ADDED,System.currentTimeMillis()/1000)
+                put(MediaStore.Files.FileColumns.SIZE,0)
             }
-            document.close()
-            pdfFile.absolutePath
+            val pdfUri=contentResolver.insert(MediaStore.Files.getContentUri("external"),contentValues)
+            if(pdfUri==null){
+                Log.e("angel","Не удалось загрузить файл в хранилище")
+                return null
+            }
+
+            //открытие потока для записи данных по адресу pdfUri
+            contentResolver.openOutputStream(pdfUri)?.use{outputStream ->
+
+                //создает пдф документ и писателя которые будет записывать в поток
+                val pdfDocument = PdfDocument(
+                    PdfWriter(outputStream)
+                )
+                //создание страниц для pdfDocument
+                val document = Document(pdfDocument)
+                // перебираем все изображения находящиеся в массиве
+                for (imagePath in imagePaths) {
+                    try {
+                        //объект imageData внутренне представление(формат,размер,байты)
+                        val imageData = ImageDataFactory.create(imagePath)
+                        // создания объекта изображения для добавления в пдф
+                        val image = Image(imageData)
+                        // Настраиваем размер
+                        image.scaleToFit(500f, 500f)
+                        image.setHorizontalAlignment(HorizontalAlignment.CENTER)
+                        document.add(image)
+                        document.add(Paragraph("\n"))
+                    } catch (e: Exception) {
+                        Log.e("PDF", "Ошибка добавления изображения $imagePath: ${e.message}")
+                    }
+                }
+                document.close()
+            }
+           pdfUri
         } catch (e: Exception) {
             Log.e("PDF", "Ошибка создания PDF: ${e.message}")
             null
