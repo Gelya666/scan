@@ -27,6 +27,9 @@ class RecyclerAdapter(private val activity: Activity, val pdfFiles: List<PdfFile
         holder.pdfSize.text=pdfFile.pdfSize
         holder.pdfCreateDate.text=pdfFile.pdfDate
         holder.imagePdfFile.setImageURI(pdfFile.PathPdfFile)
+        holder.pdfName.setOnClickListener{
+            listener.onPdfNameClick(pdfFile)
+        }
         holder.point.setOnClickListener{
            listener.onFileClick(position, pdfFile.pdfName!!,pdfFile)
         }

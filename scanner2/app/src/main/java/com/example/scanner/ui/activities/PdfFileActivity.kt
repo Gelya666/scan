@@ -1,8 +1,8 @@
 package com.example.scanner.ui.activities
-
 import android.annotation.SuppressLint
 import android.graphics.Bitmap
 import android.graphics.pdf.PdfRenderer
+import android.net.Uri
 import android.os.Bundle
 import android.os.ParcelFileDescriptor
 import android.util.Log
@@ -21,7 +21,6 @@ import androidx.core.view.WindowInsetsCompat
 import com.example.scanner.R
 import java.io.File
 import kotlin.math.abs
-
 class PdfFileActivity : AppCompatActivity() {
     private lateinit var pdfImageView: ImageView
     private var progressBar: ProgressBar? = null
@@ -53,13 +52,24 @@ class PdfFileActivity : AppCompatActivity() {
         btnNext = findViewById(R.id.btnNext)
         btnBack = findViewById(R.id.btnBack)
         val filePath = intent.extras?.getString("PDF_FILE_PATH")
+        val uriString=intent.getStringExtra("pdf_uri")
         Log.d("danil_logs", "onCreate: $filePath")
-        if (filePath != null) {
-            pdfFile = File(filePath)
-            loadPdfDocument()
-        } else {
-            Toast.makeText(this, "Файл не найден", Toast.LENGTH_SHORT).show()
-            finish()
+        when {
+            // Вариант 1: есть путь к файлу
+            !filePath.isNullOrEmpty() -> {
+                pdfFile = File(filePath)
+                loadPdfDocument()
+            }
+            // Вариант 2: есть URI
+            !uriString.isNullOrEmpty() -> {
+                val uri = Uri.parse(uriString)
+                loadPdfFromUri(uri)
+            }
+            // Вариант 3: ничего нет
+            else -> {
+                Toast.makeText(this, "Файл не найден", Toast.LENGTH_SHORT).show()
+                finish()
+            }
         }
         pdfImageView.setOnTouchListener(object : View.OnTouchListener {
             private var startX = 0f
@@ -90,7 +100,6 @@ class PdfFileActivity : AppCompatActivity() {
         btnNext.setOnClickListener { showPage(currentPageIndex + 1) }
         btnBack.setOnClickListener { finish() }
     }
-
     private fun loadPdfDocument() {
         progressBar?.visibility = View.VISIBLE
         try {
@@ -115,7 +124,6 @@ class PdfFileActivity : AppCompatActivity() {
             progressBar?.visibility = View.GONE
         }
     }
-
     private fun updateUI() {
         tvPageInfo.text = "${currentPageIndex + 1}/$pageCount"
         btnPrev.isEnabled = currentPageIndex > 0
@@ -141,6 +149,34 @@ class PdfFileActivity : AppCompatActivity() {
         } catch (e: Exception) {
             Toast.makeText(this, "Ошибка отображения страницы", Toast.LENGTH_SHORT).show()
             Log.e("PDF_VIEWER", "Error showing page $pageIndex", e)
+        }
+    }
+    private fun loadPdfFromUri(uri: Uri) {
+        progressBar?.visibility = View.VISIBLE
+        try {
+            // Получаем дескриптор файла через ContentResolver
+            val parcelFileDescriptor = contentResolver.openFileDescriptor(uri, "r")
+
+            if (parcelFileDescriptor != null) {
+                pdfRenderer = PdfRenderer(parcelFileDescriptor)
+                pageCount = pdfRenderer!!.pageCount
+
+                // Получаем имя файла из URI
+                val fileName = uri.lastPathSegment ?: "Документ.pdf"
+                tvFileName.text = fileName
+
+                tvPageInfo.text = "1/$pageCount"
+                showPage(0)
+            } else {
+                Toast.makeText(this, "Не удалось открыть PDF", Toast.LENGTH_SHORT).show()
+                finish()
+            }
+        } catch (e: Exception) {
+            Toast.makeText(this, "Ошибка загрузки PDF: ${e.message}", Toast.LENGTH_SHORT).show()
+            Log.e("PDF_VIEWER", "Error loading PDF from URI", e)
+            finish()
+        } finally {
+            progressBar?.visibility = View.GONE
         }
     }
 

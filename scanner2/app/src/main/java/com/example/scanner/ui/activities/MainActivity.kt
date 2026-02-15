@@ -1,5 +1,4 @@
 package com.example.scanner.ui.activities
-
 import android.content.Intent
 import android.net.Uri
 import android.os.Bundle
@@ -29,7 +28,6 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
 
-
 class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsListener,
     OnFileClickListener {
     private lateinit var binding: ActivityMainBinding
@@ -40,7 +38,7 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
     private val allFiles = mutableListOf<PdfFile>()
     //неудаленные файлы
     private  val visibleFiles=mutableListOf<PdfFile>()
-    //удалённые файлв
+    //удалённые файлы
     private val deletedFilesId=mutableSetOf<String>()
     val filePickerLauncher = registerForActivityResult(
         ActivityResultContracts.OpenDocument()
@@ -49,12 +47,11 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
             openPdfFile(uri)
         }
     }
-
     private var currentPhotoPath: String = ""
     private var photoUri: Uri? = null
 
     private val takePicture = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
-        Log.d("Angel","take picture result ${success}    ${Thread.currentThread().getFormattedStackTrace()}")
+        Log.d("Angel","take picture result ${success}   ${Thread.currentThread().getFormattedStackTrace()}")
         if (success) {
             allPhotoPaths.add(currentPhotoPath)
             Log.d("Angel", "Фото сохранено: $photoUri")
@@ -87,21 +84,27 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
         }
         binding.recView.layoutManager = LinearLayoutManager(this)
         val filesManager = FilesManager()
+        //удаление всех файлов
         allFiles.clear()
+        //к пустому списку добавляются файлы из внешнего хранилища
         allFiles.addAll(filesManager.getPdfFiles(this))
+        //создается адаптер для recyclerView и передаются все необходимые данные
         adapter = RecyclerAdapter(this,visibleFiles,this)
-        //адаптер предостаавляет данные recyclerView для отображения
+        //связваю адаптер с recyclerView для отображения данных
         binding.recView.adapter=adapter
-        //устнавливаю номер добавленного объекта продукт
+        //добавление элемента в самое начало списка
         val newPosition = 0
         //уведомляю адаптер что добавлен объект с указанным номер чтобы он обновил отображение
         adapter.notifyItemInserted(newPosition)
+        //прокрутка recycler к началу чтобы пользователь увидел добавленный элемент
         binding.recView.smoothScrollToPosition(newPosition)
         loadDeletesFilesId()
         filterFiles()
     }
     private fun filterFiles() {
+        //очищение неудаленных файлов
         visibleFiles.clear()
+        //добавляем к неудаленным файла все файлы и фильтруем
         visibleFiles.addAll(allFiles.filter { it.id !in deletedFilesId })
         Log.d("angel", " После фильтрации: ${visibleFiles.size} файлов из ${allFiles.size}")
     }
@@ -183,16 +186,20 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
         Toast.makeText(this, "Файл сохранен:$filename", Toast.LENGTH_SHORT).show()
     }
     override fun onDelete(filename: String,position:Int) {
-        Log.d("angel", "===== МЕТОД onDelete ВЫЗВАН =====")
-        Log.d("angel", "Имя файла: $filename")
-        Log.d("angel", "Позиция: $position")
-        Log.d("angel", "Размер списка ДО удаления: ${visibleFiles.size}")
+
+       //проверка если элемент от 0 до размера спика
       if( position in 0 until visibleFiles.size) {
+
+          //берем это элемент и добавляет  в множество уадаленного спика
           val deletedFile = visibleFiles[position]
           deletedFilesId.add(deletedFile.id)
           saveDeletesFileId()
+
+          //удаляем по позиции из отображаемых файлов
           visibleFiles.removeAt(position)
+          //сообщается адаптеру об удаленном элементе
           adapter.notifyItemRemoved(position)
+          //обновление элементов по позициям
           adapter.notifyItemRangeChanged(position, visibleFiles.size - position)
           Toast.makeText(this, "Файл удален:$filename", Toast.LENGTH_SHORT).show()
       }
@@ -206,33 +213,58 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
     override fun onRename(filename: String) {
         Toast.makeText(this,"Файл переименован:$filename", Toast.LENGTH_SHORT).show()
     }
-
     override fun onFileClick(position: Int, fileName: String, pdfFile: PdfFile) {
         val dialog = FileOptionsDialogFragment.Companion.newInstance(fileName,position)
          dialog.show(supportFragmentManager, "file_options_dialog")
     }
+
+    override fun onPdfNameClick(pdfFile: PdfFile){
+        val uri=pdfFile.PathPdfFile
+        if(uri!=null){
+            val intent=Intent(this,PdfFileActivity::class.java)
+            intent.putExtra("pdf_uri",uri.toString())
+            startActivity(intent)
+        }else{
+            Toast.makeText(this,"URI файл пустой",Toast.LENGTH_SHORT).show()
+        }
+    }
     private fun loadDeletesFilesId(){
+        Log.d("TEST", "ДО загрузки: deletedFilesId = $deletedFilesId")
         val prefs=getSharedPreferences("app_prefers",MODE_PRIVATE)
+
+        //берем строку по ключу "deleted_files"если нет то пустая строка
         val deletedIdsString=prefs.getString("deleted_files","")?:""
+        Log.d("TEST", "В файле: $deletedIdsString")
+        //очищает множество строк
         deletedFilesId.clear()
+        Log.d("TEST", "После clear: deletedFilesId = $deletedFilesId")
+
+        //если удаленные id не пустые то,разбиваем строку по запятыми,получаем список строк
+        //проход через каждый элемент списка,убриаем пробелы
         if(deletedIdsString.isNotEmpty()){
             deletedIdsString.split(",").forEach{id->
                 val trimmedId = id.trim()
+                //если id не пустое,добавляю во множество
            if( trimmedId.isNotEmpty()){
                deletedFilesId.add( trimmedId)
+               Log.d("TEST", "Добавили: $trimmedId")
            }
             }
+            Log.d("TEST", "ПОСЛЕ загрузки: deletedFilesId = $deletedFilesId")
         }
     }
     private fun saveDeletesFileId(){
+
+        //создание блокнота с именем "app_prefers" с доступом только у моего приложения
         val prefs=getSharedPreferences("app_prefers",MODE_PRIVATE)
+
+        //из множества-строка с разделением-запятые
         val idsString = deletedFilesId.joinToString(",")
 
-        Log.d("angel", "Сохранение:")
-        Log.d("angel", " deletedFilesId = $deletedFilesId")
-        Log.d("angel", "idsString = '$idsString'")
-
+        //кладу строку idsString в prefs по ключу deleted_files
         prefs.edit().putString("deleted_files", idsString).apply()
+
+        //берем значение по ключу deleted_files если нет-пустая строка
         val saved = prefs.getString("deleted_files", "")
         Log.d("angel", "Проверка: сохранилось '$saved'")
         }
