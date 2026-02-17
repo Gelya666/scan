@@ -1,6 +1,5 @@
 package com.example.scanner.ui.activities
 import android.annotation.SuppressLint
-import android.graphics.Bitmap
 import android.graphics.pdf.PdfRenderer
 import android.net.Uri
 import android.os.Bundle
@@ -16,11 +15,13 @@ import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.graphics.createBitmap
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import com.example.scanner.R
 import java.io.File
 import kotlin.math.abs
+
 class PdfFileActivity : AppCompatActivity() {
     private lateinit var pdfImageView: ImageView
     private var progressBar: ProgressBar? = null
@@ -71,19 +72,27 @@ class PdfFileActivity : AppCompatActivity() {
                 finish()
             }
         }
+        //слушатель касаний для imageView реагирование на касание
         pdfImageView.setOnTouchListener(object : View.OnTouchListener {
+
+            //хранит координату x первого касания пальца
             private var startX = 0f
             override fun onTouch(v: View, event: MotionEvent): Boolean {
                 when (event.action) {
+                    //при первом касании запоминаем координату
                     MotionEvent.ACTION_DOWN -> {
                         startX = event.x
                         return true
                     }
-
+                     //убрали касание
                     MotionEvent.ACTION_UP -> {
+                        //координата в момент когда прекратили касаться
                         val endX = event.x
                         val deltaX = endX - startX
+                        //проверка достаточно ли большой сдвиг на 1 см и более(исключить дрожание)
+                        //abc-убирает знак минус
                         if (abs(deltaX) > 100) {
+                            //если разность положительная свайп право возвращаемсяна пред страницу
                             if (deltaX > 0) {
                                 showPage(currentPageIndex - 1)
                             } else {
@@ -124,26 +133,33 @@ class PdfFileActivity : AppCompatActivity() {
             progressBar?.visibility = View.GONE
         }
     }
+    @SuppressLint("SetTextI18n")
     private fun updateUI() {
+        //показать текущую старницу/кол-во страниц
         tvPageInfo.text = "${currentPageIndex + 1}/$pageCount"
+        //кнопка назад доступна если текущая страница больше 0
         btnPrev.isEnabled = currentPageIndex > 0
+        //кнопка вперед доступна если не на последней странице
         btnNext.isEnabled = currentPageIndex < pageCount - 1
-        val colorEnabled = ContextCompat.getColor(this, R.color.colorPrimary)
+        val colorEnabled = ContextCompat.getColor(this, R.color.white)
         val colorDisabled = ContextCompat.getColor(this, android.R.color.darker_gray)
         btnPrev.setTextColor(if (btnPrev.isEnabled) colorEnabled else colorDisabled)
         btnNext.setTextColor(if (btnNext.isEnabled) colorEnabled else colorDisabled)
     }
 
     private fun showPage(pageIndex: Int) {
+        //проверка если индек страницы<0 и больше всего страниц текущая страница закрывется
         if (pageIndex < 0 || pageIndex >= pageCount) return
         currentPage?.close()
         try {
+            //открыть текущую страницу
             currentPage = pdfRenderer!!.openPage(pageIndex)
+            //запомнили номер страницы
             currentPageIndex = pageIndex
-            val bitmap = Bitmap.createBitmap(
-                currentPage!!.width, currentPage!!.height, Bitmap.Config.ARGB_8888
-            )
+            //создание чистого листа с шириной и высотой текущей страницы
+            val bitmap = createBitmap(currentPage!!.width, currentPage!!.height)
             currentPage!!.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
+           //установить изображение в ImageView
             pdfImageView.setImageBitmap(bitmap)
             updateUI()
         } catch (e: Exception) {
@@ -154,24 +170,26 @@ class PdfFileActivity : AppCompatActivity() {
     private fun loadPdfFromUri(uri: Uri) {
         progressBar?.visibility = View.VISIBLE
         try {
-            // Получаем дескриптор файла через ContentResolver
+            // открытие файла и полкчение дескриптора
             val parcelFileDescriptor = contentResolver.openFileDescriptor(uri, "r")
 
             if (parcelFileDescriptor != null) {
+                //передача дескриптора pdfRenderer чтобы он мог работать с файлами
                 pdfRenderer = PdfRenderer(parcelFileDescriptor)
+                //количество страниц в файле
                 pageCount = pdfRenderer!!.pageCount
 
                 // Получаем имя файла из URI
                 val fileName = uri.lastPathSegment ?: "Документ.pdf"
                 tvFileName.text = fileName
-
+                //количество страниц-всего/текущая
                 tvPageInfo.text = "1/$pageCount"
                 showPage(0)
             } else {
                 Toast.makeText(this, "Не удалось открыть PDF", Toast.LENGTH_SHORT).show()
                 finish()
             }
-        } catch (e: Exception) {
+        } catch (e:Exception) {
             Toast.makeText(this, "Ошибка загрузки PDF: ${e.message}", Toast.LENGTH_SHORT).show()
             Log.e("PDF_VIEWER", "Error loading PDF from URI", e)
             finish()

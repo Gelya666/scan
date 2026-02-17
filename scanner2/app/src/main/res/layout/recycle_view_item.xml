@@ -16,58 +16,90 @@
     app:layout_constraintTop_toTopOf="parent">
     <!-- Текст с названием PDF файла -->
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_vertical"
+        android:layout_marginStart="60dp"
+        android:layout_marginEnd="100dp"
+        android:orientation="vertical">
+
     <TextView
         android:id="@+id/textPdfName"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
         android:ellipsize="end"
         android:maxLines="1"
         android:text="Название PDF файла"
-        android:textSize="18sp"
+        android:textSize="16sp"
         android:textStyle="bold" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="4dp"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <TextView
+            android:id="@+id/textDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:maxLines="1"
+            android:text="18.02.2026"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="  •  "
+            android:textSize="12sp"
+            android:textStyle="bold"/>
+
+
+        <TextView
+            android:id="@+id/textSize"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:maxLines="1"
+            android:text="2.5 МВ"
+            android:textSize="12sp"
+            android:textStyle="bold" />
+    </LinearLayout>
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:orientation="vertical"
+        android:gravity="center_horizontal">
     <ImageButton
         android:id="@+id/points"
-        android:layout_width="68dp"
-        android:layout_height="35dp"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:layout_marginBottom="6dp"
+        android:background="@null"
         android:contentDescription="Нажать на иконку"
-        android:scaleType="centerCrop"
+        android:padding="12dp"
+        android:scaleType="fitCenter"
         app:srcCompat="@drawable/points_small" />
 
-    <ImageView
-        android:id="@+id/download"
-        android:layout_width="63dp"
-        android:layout_height="23dp"
-        android:layout_marginTop="60dp"
-        app:srcCompat="@drawable/download" />
-
+        <ImageView
+            android:id="@+id/download"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:padding="12dp"
+            android:scaleType="fitCenter"
+            app:srcCompat="@drawable/download" />
+    </LinearLayout>
     <ImageView
         android:id="@+id/iconPdfFirstScreen"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
-        android:layout_gravity="center|end"
-        android:layout_marginEnd="8dp"
-        app:srcCompat="@drawable/___pngtree___no_avatar_vector_isolated_on_4979074_2" />
-
-    <TextView
-        android:id="@+id/textDate"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="left|center|bottom"
-        android:ellipsize="end"
-        android:maxLines="1"
-        android:text="Время создания PDF файла"
-        android:textSize="10sp"
-        android:textStyle="bold" />
-    <TextView
-        android:id="@+id/textSize"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="right|center|bottom"
-        android:ellipsize="end"
-        android:maxLines="1"
-        android:text="Размер PDF файла"
-        android:textSize="10sp"
-        android:textStyle="bold" />
-
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_gravity="start|center_vertical"
+        android:layout_marginStart="4dp"
+        android:scaleType="fitCenter"
+        android:background="#00E5FF"
+        app:srcCompat="@drawable/ic_pdf"
+        android:visibility="visible"/>
 </FrameLayout>
