@@ -15,7 +15,7 @@ class FileOptionsDialogFragment: DialogFragment() {
     private var position=-1
 
     interface FileOptionsListener {
-        fun onRename(filename: String)
+        fun onRename(filename: String,position: Int)
         fun onHide(filename: String)
         fun onDownload(filename: String)
         fun onDelete(filename: String,position:Int)
@@ -50,13 +50,10 @@ class FileOptionsDialogFragment: DialogFragment() {
                 private fun setupButtons()
                 {
                     dialog?.findViewById<Button>(R.id.btn_rename)?.setOnClickListener{
-                        listener?.onRename(filename)
+                        listener?.onRename(filename,position)
                         dismiss()
                     }
-                        dialog?.findViewById<Button>(R.id.btn_hide)?.setOnClickListener{
-                            listener?.onHide(filename)
-                            dismiss()
-                        }
+
                             dialog?.findViewById<Button>(R.id.btn_download)?.setOnClickListener {
                                 listener?.onDownload(filename)
                                 dismiss()
@@ -64,10 +61,6 @@ class FileOptionsDialogFragment: DialogFragment() {
                                 dialog?.findViewById<Button>(R.id.btn_delete)?.setOnClickListener {
                                     showDeleteConfirmation()
                                 }
-                                    dialog?.findViewById<Button>(R.id.btn_reject)?.setOnClickListener {
-                                        listener?.onReject(filename)
-                                        dismiss()
-                                    }
                 }
                     private fun showDeleteConfirmation()
                     {

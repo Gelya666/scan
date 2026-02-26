@@ -1,14 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <!-- Круглый фон (увеличен) -->
     <item
         android:drawable="@drawable/circle_background"
-        android:width="50dp"
-        android:height="50dp"/>
+        android:width="70dp"
+    android:height="70dp"/>
+
+    <!-- Иконка камеры (увеличена и перецентрирована) -->
     <item
         android:drawable="@drawable/camera_ic"
-        android:width="20dp"
-        android:height="20dp"
-        android:gravity="top|right"
-        android:top="15dp"
-        android:right="15dp"/>
+        android:width="30dp"
+    android:height="30dp"
+    android:gravity="top|right"
+    android:top="20dp"
+    android:right="20dp"/>
+
 </layer-list>

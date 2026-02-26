@@ -15,6 +15,14 @@
     app:layout_constraintStart_toStartOf="parent"
     app:layout_constraintTop_toTopOf="parent">
     <!-- Текст с названием PDF файла -->
+    <ImageView
+        android:id="@+id/iconPdfFirstScreen"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_gravity="start|center_vertical"
+        android:layout_marginStart="4dp"
+        android:scaleType="fitXY"
+        android:background="#00E5FF" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -84,22 +92,13 @@
         android:scaleType="fitCenter"
         app:srcCompat="@drawable/points_small" />
 
-        <ImageView
+        <ImageButton
             android:id="@+id/download"
             android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_height="46dp"
+            android:background="@null"
             android:padding="12dp"
             android:scaleType="fitCenter"
             app:srcCompat="@drawable/download" />
     </LinearLayout>
-    <ImageView
-        android:id="@+id/iconPdfFirstScreen"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:layout_gravity="start|center_vertical"
-        android:layout_marginStart="4dp"
-        android:scaleType="fitCenter"
-        android:background="#00E5FF"
-        app:srcCompat="@drawable/ic_pdf"
-        android:visibility="visible"/>
 </FrameLayout>

@@ -53,11 +53,13 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toStartOf="@+id/btn_camera"
+        android:baselineAligned="false"
         app:layout_constraintWidth_percent="0.33">
+
         <ImageButton
             android:id="@+id/btn_hOme"
-            android:layout_width="100dp"
-            android:layout_height="48dp"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
             android:background="@drawable/circle_back"
             android:src="@drawable/home"
             android:contentDescription="Нажать на иконку дом" />
@@ -76,16 +78,22 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:gravity="center"
+        android:layout_marginTop="100dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toEndOf="@id/btn_home"
         app:layout_constraintEnd_toStartOf="@+id/btn_pdf"
+        android:baselineAligned="false"
         app:layout_constraintWidth_percent="0.33">
-
         <ImageButton
+            android:background="@android:color/transparent"
             android:id="@+id/btnOpenCamera"
-            android:layout_width="70dp"
-            android:layout_height="70dp"
+            android:layout_width="80dp"
+            android:layout_height="80dp"
             android:src="@drawable/icon_with_badge"
+            android:scaleType="fitCenter"
+            android:padding="8dp"
+            android:layout_marginTop="50dp"
+            app:layout_constraintVertical_bias="1"
             android:contentDescription="Нажать на иконку камера" />
         <TextView
             android:layout_width="wrap_content"
@@ -102,13 +110,15 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintStart_toEndOf="@id/btn_camera"
         app:layout_constraintEnd_toEndOf="parent"
+        android:baselineAligned="false"
         app:layout_constraintWidth_percent="0.33">
 
         <ImageButton
             android:id="@+id/btn_pdf"
-            android:layout_width="48dp"
-            android:layout_height="48dp"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
             android:contentDescription="Нажать на PDF файл"
+            android:background="@android:color/transparent"
             android:src="@drawable/pdf_small" />
 
         <TextView

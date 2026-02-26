@@ -1,12 +1,17 @@
 package com.example.scanner.ui.activities
 import android.content.Intent
+import android.content.Intent.EXTRA_STREAM
+import android.content.Intent.EXTRA_TITLE
+import android.content.Intent.FLAG_GRANT_READ_URI_PERMISSION
 import android.net.Uri
 import android.os.Bundle
 import android.os.Environment
 import android.util.Log
+import android.widget.EditText
 import android.widget.Toast
 import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
 import androidx.core.view.ViewCompat
@@ -33,13 +38,16 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
     private lateinit var binding: ActivityMainBinding
     private lateinit var cameraManager: CameraManager
     private val allPhotoPaths = mutableListOf<String>()
-    private  lateinit  var adapter: RecyclerAdapter
+    private lateinit var adapter: RecyclerAdapter
+
     //все файлы
     private val allFiles = mutableListOf<PdfFile>()
+
     //неудаленные файлы
-    private  val visibleFiles=mutableListOf<PdfFile>()
+    private var visibleFiles = mutableListOf<PdfFile>()
+
     //удалённые файлы
-    private val deletedFilesId=mutableSetOf<String>()
+    private val deletedFilesId = mutableSetOf<String>()
     val filePickerLauncher = registerForActivityResult(
         ActivityResultContracts.OpenDocument()
     ) { uri: Uri? ->
@@ -50,18 +58,25 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
     private var currentPhotoPath: String = ""
     private var photoUri: Uri? = null
 
-    private val takePicture = registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
-        Log.d("Angel","take picture result ${success}   ${Thread.currentThread().getFormattedStackTrace()}")
-        if (success) {
-            allPhotoPaths.add(currentPhotoPath)
-            Log.d("Angel", "Фото сохранено: $photoUri")
-            Toast.makeText(this, "Фото сделано", Toast.LENGTH_SHORT).show()
-            goToPdfPagesEditorActivity()
-        } else {
-            Log.e("CameraDebug", "Фото не сделано")
-            Toast.makeText(this, "Фото не сделано", Toast.LENGTH_SHORT).show()
+    private val takePicture =
+        registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+            Log.d(
+                "Angel",
+                "take picture result ${success}   ${
+                    Thread.currentThread().getFormattedStackTrace()
+                }"
+            )
+            if (success) {
+                allPhotoPaths.add(currentPhotoPath)
+                Log.d("Angel", "Фото сохранено: $photoUri")
+                Toast.makeText(this, "Фото сделано", Toast.LENGTH_SHORT).show()
+                goToPdfPagesEditorActivity()
+            } else {
+                Log.e("CameraDebug", "Фото не сделано")
+                Toast.makeText(this, "Фото не сделано", Toast.LENGTH_SHORT).show()
+            }
         }
-    }
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
@@ -89,9 +104,9 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
         //к пустому списку добавляются файлы из внешнего хранилища
         allFiles.addAll(filesManager.getPdfFiles(this))
         //создается адаптер для recyclerView и передаются все необходимые данные
-        adapter = RecyclerAdapter(this,visibleFiles,this)
+        adapter = RecyclerAdapter(this, visibleFiles, this)
         //связваю адаптер с recyclerView для отображения данных
-        binding.recView.adapter=adapter
+        binding.recView.adapter = adapter
         //добавление элемента в самое начало списка
         val newPosition = 0
         //уведомляю адаптер что добавлен объект с указанным номер чтобы он обновил отображение
@@ -100,7 +115,9 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
         binding.recView.smoothScrollToPosition(newPosition)
         loadDeletesFilesId()
         filterFiles()
+        applySavedNamesToFiles()
     }
+
     private fun filterFiles() {
         //очищение неудаленных файлов
         visibleFiles.clear()
@@ -108,15 +125,17 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
         visibleFiles.addAll(allFiles.filter { it.id !in deletedFilesId })
         Log.d("angel", " После фильтрации: ${visibleFiles.size} файлов из ${allFiles.size}")
     }
+
     override fun onResume() {
         super.onResume()
         Log.d("DEBUG", "MainActivity onResume - фото: ${allPhotoPaths.size}")
         allPhotoPaths.clear()
         Log.d("DEBUG", "После очистки - фото: ${allPhotoPaths.size}")
     }
+
     // создание пдф из фото
     private fun createPdfFromPhoto() {
-        if(!cameraManager.checkCameraPermission()){
+        if (!cameraManager.checkCameraPermission()) {
             cameraManager.requestCameraPermission()
         }
         try {
@@ -127,9 +146,9 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
                 "${packageName}.fileprovider",
                 photoFile
             )//владелец название тип значение
-            Log.d("Angel","Текущий путь ${photoUri}")
+            Log.d("Angel", "Текущий путь ${photoUri}")
             takePicture.launch(photoUri!!)
-            Log.d("Angel","Записать ${photoUri}")
+            Log.d("Angel", "Записать ${photoUri}")
         } catch (e: IOException) {
             Log.e("CameraDebug", "Ошибка создания файла: ${e.message}")
             Toast.makeText(this, "Ошибка создания файла", Toast.LENGTH_SHORT).show()
@@ -138,11 +157,13 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
             Toast.makeText(this, "Ошибка запуска камеры", Toast.LENGTH_SHORT).show()
         }
     }
+
     // загрузка пдф из URI
     private fun loadPdfFromFiles() {
         filePickerLauncher.launch(arrayOf("*/*"))
     }
-    private fun openPdfFile(uri: Uri){
+
+    private fun openPdfFile(uri: Uri) {
         val inputStream = contentResolver.openInputStream(uri)
         inputStream?.use { stream ->
             try {
@@ -157,9 +178,11 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
             }
         }
     }
+
     @Throws(IOException::class)
     private fun createImageFile(): File {
-        val timeStamp: String = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+        val timeStamp: String =
+            SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
         val storageDir: File? = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
         return File.createTempFile("JPEG_${timeStamp}_", ".jpg", storageDir)
     }
@@ -172,6 +195,7 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
         startActivity(intent)
         allPhotoPaths.clear()
     }
+
     private fun goToPdf_FileActivity(absolutePath: String) {
         Log.d("PDF", "Saved to: ${absolutePath}")
         val intent = Intent(this, PdfFileActivity::class.java).apply {
@@ -179,39 +203,78 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
         }
         startActivity(intent)
     }
+
     override fun onHide(filename: String) {
-        Toast.makeText(this,"Файл скрыт:$filename", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, "Файл скрыт:$filename", Toast.LENGTH_SHORT).show()
     }
+
     override fun onDownload(filename: String) {
         Toast.makeText(this, "Файл сохранен:$filename", Toast.LENGTH_SHORT).show()
     }
-    override fun onDelete(filename: String,position:Int) {
 
-       //проверка если элемент от 0 до размера спика
-      if( position in 0 until visibleFiles.size) {
+    override fun onDelete(filename: String, position: Int) {
 
-          //берем это элемент и добавляет  в множество уадаленного спика
-          val deletedFile = visibleFiles[position]
-          deletedFilesId.add(deletedFile.id)
-          saveDeletesFileId()
+        //проверка если элемент от 0 до размера спика
+        if (position in 0 until visibleFiles.size) {
 
-          //удаляем по позиции из отображаемых файлов
-          visibleFiles.removeAt(position)
-          //сообщается адаптеру об удаленном элементе
-          adapter.notifyItemRemoved(position)
-          //обновление элементов по позициям
-          adapter.notifyItemRangeChanged(position, visibleFiles.size - position)
-          Toast.makeText(this, "Файл удален:$filename", Toast.LENGTH_SHORT).show()
-      }
+            //берем это элемент и добавляет  в множество уадаленного спика
+            val deletedFile = visibleFiles[position]
+            deletedFilesId.add(deletedFile.id)
+            saveDeletesFileId()
+
+            //удаляем по позиции из отображаемых файлов
+            visibleFiles.removeAt(position)
+            //сообщается адаптеру об удаленном элементе
+            adapter.notifyItemRemoved(position)
+            //обновление элементов по позициям
+            adapter.notifyItemRangeChanged(position, visibleFiles.size - position)
+            Toast.makeText(this, "Файл удален:$filename", Toast.LENGTH_SHORT).show()
+        }
 
     }
 
     override fun onReject(filename: String) {
-        Toast.makeText(this,"Файл отклонен:$filename", Toast.LENGTH_SHORT).show()
+        Toast.makeText(this, "Файл отклонен:$filename", Toast.LENGTH_SHORT).show()
     }
 
-    override fun onRename(filename: String) {
-        Toast.makeText(this,"Файл переименован:$filename", Toast.LENGTH_SHORT).show()
+    override fun onRename(filename: String, position: Int) {
+
+        //получаем файл по его позиции в списке
+        val renameToFile = visibleFiles[position]
+
+        //сторитель для создания окна
+        val builder = AlertDialog.Builder(this)
+
+        //устанавливаю заголовок
+        builder.setTitle("Новое название")
+
+        //создание поля для ввода текста на экран
+        val input = EditText(this)
+
+        //убираем из имени файла pdf
+        input.setText(renameToFile.pdfName?.replace(".pdf", ""))
+
+        //кладем поле ввода внутрь диалогового окна
+        builder.setView(input)
+
+        //при нажатии на кнопку ок
+        builder.setPositiveButton("OK") { _, _ ->
+
+            //берем текст из поля преобразуем в строку добавляем pdf
+            val newName = input.text.toString().trim() + ".pdf"
+
+            //присваивание новое имя файлу
+            renameToFile.pdfName = newName
+
+            //сохранение нового имени
+            saveFileName(renameToFile.id, newName)
+
+            //обновление с новым именем в адаптере
+            adapter.notifyItemChanged(position)
+            Toast.makeText(this, "Сохранено $newName", Toast.LENGTH_SHORT).show()
+        }
+        builder.setNegativeButton("Cancel",null)
+        builder.show()
     }
     override fun onFileClick(position: Int, fileName: String, pdfFile: PdfFile) {
         val dialog = FileOptionsDialogFragment.Companion.newInstance(fileName,position)
@@ -228,6 +291,34 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
             Toast.makeText(this,"URI файл пустой",Toast.LENGTH_SHORT).show()
         }
     }
+    private fun shareFile(uri:Uri,fileName:String){
+        try {
+
+            //запрос на отправку для системы android
+            val shareIntent = Intent(Intent.ACTION_SEND)
+            shareIntent.setType("application/pdf")
+
+            //положите файл в намерение
+            shareIntent.putExtra(EXTRA_STREAM, uri)
+
+            //добавление название файла
+            shareIntent.putExtra(EXTRA_TITLE,fileName)
+
+            //разрешение на чтение файла другим приложениям
+            shareIntent.addFlags(FLAG_GRANT_READ_URI_PERMISSION)
+            val chooserBox=Intent.createChooser(shareIntent, fileName)
+            startActivity(chooserBox)
+        }catch(e: Exception){
+            Toast.makeText(this,"ошибка ${e.message}",Toast.LENGTH_SHORT).show()
+            e.printStackTrace()
+        }
+    }
+
+    override fun sharePdfFile(pdfFile: PdfFile) {
+        val uri=pdfFile.PathPdfFile?:return
+        shareFile(uri,pdfFile.pdfName?:"документ.пдф")
+    }
+
     private fun loadDeletesFilesId(){
         Log.d("TEST", "ДО загрузки: deletedFilesId = $deletedFilesId")
         val prefs=getSharedPreferences("app_prefers",MODE_PRIVATE)
@@ -269,8 +360,36 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
         Log.d("angel", "Проверка: сохранилось '$saved'")
         }
 
-
+    private fun saveFileName(fileId: String, fileName: String) {
+        val sharedPref = getSharedPreferences("FileNames", MODE_PRIVATE)
+        val editor = sharedPref.edit()
+        editor.putString(fileId, fileName)
+        editor.apply() // apply() сохраняет в фоне (проще для новичков)
     }
+    private fun applySavedNamesToFiles() {
+
+        // 1. Открываем блокнот
+        val sharedPref = getSharedPreferences("FileNames", MODE_PRIVATE)
+
+        // 2. Для каждого файла в списке проверяем, есть ли для него сохраненное имя
+        for (i in visibleFiles.indices) {
+            val file = visibleFiles[i]
+
+            // 3. Пробуем найти сохраненное имя по ID файла
+            val savedName = sharedPref.getString(file.id, null)
+
+            // 4. Если нашли - меняем имя
+            if (savedName != null) {
+                val originalName = file.pdfName
+                file.pdfName = savedName
+                Log.d("RESTORE", "Файл ${file.id}: было '$originalName', стало '$savedName'")
+            }
+        }
+
+        // 5. Обновляем список на экране
+        adapter.notifyDataSetChanged()
+    }
+}
 
 
 
