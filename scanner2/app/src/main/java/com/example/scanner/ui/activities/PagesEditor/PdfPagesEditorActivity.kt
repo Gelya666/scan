@@ -160,7 +160,9 @@ class PdfPagesEditorActivity : AppCompatActivity() {
 
     // Event handling - delegate to current state
     fun handleEvent(event: ViewPagerEvent) {
+        //проверка какой именно тип событий произошёл
         when (event) {
+
             is ViewPagerEvent.CropClicked -> transitionTo(CropState(this).apply {
                 stateData.currentPosition = currentState.stateData.currentPosition
             })
@@ -178,6 +180,9 @@ class PdfPagesEditorActivity : AppCompatActivity() {
                     })
                 }
             }
+            is ViewPagerEvent.AddPageClicked->{
+                checkCameraPermissionAndTakePhoto()
+            }
             is ViewPagerEvent.ApplyClicked -> currentState.onApplyClicked()
             is ViewPagerEvent.UndoClicked -> adapter.undo()
             is ViewPagerEvent.RedoClicked -> adapter.redo()
@@ -193,7 +198,7 @@ class PdfPagesEditorActivity : AppCompatActivity() {
         btnSave.visibility = if (currentState is NormalState) View.VISIBLE else View.GONE
 
         btnReturnToNormalMode.visibility = if (currentState is NormalState) View.GONE else View.VISIBLE
-        btnApply.visibility = if (currentState is CropState) View.VISIBLE else View.GONE
+        btnApply.visibility = if (currentState is CropState || currentState is FilterState) View.VISIBLE else View.GONE
     }
     // UI Update methods only
     fun updateNormalUI() {
@@ -261,10 +266,14 @@ class PdfPagesEditorActivity : AppCompatActivity() {
     }
     private fun onTakePictureResult(success: Boolean) {
         if (success) {
+
+            //если currentPhotoFile не null
             currentPhotoFile?.let { photoFile ->
                 if (photoFile.exists()) {
                     photoPaths.add(photoFile.absolutePath)
                     adapter.updateData(photoPaths)
+
+                    //переключение viewPager на последнюю страницу
                     viewPager.setCurrentItem(photoPaths.size - 1, true)
                     Toast.makeText(this, "Фото добавлено", Toast.LENGTH_SHORT).show()
                 }

@@ -120,8 +120,18 @@ class CropState(override val activity: PdfPagesEditorActivity) : PhotoViewPagerS
 
     private fun saveCroppedImage(bitmap: Bitmap, filePath: String) {
         try {
+
+            Log.d("SAVE_CROPPED", "🟢 Начинаем сохранение обрезанного изображения")
+            Log.d("SAVE_CROPPED", "Путь для сохранения: $filePath")
+            Log.d("SAVE_CROPPED", "Размер Bitmap: ${bitmap.width}x${bitmap.height}")
+
             FileOutputStream(filePath).use { outputStream ->
                 bitmap.compress(Bitmap.CompressFormat.JPEG, 90, outputStream)
+
+                Log.d("SAVE_CROPPED", "✅ Файл успешно сохранён")
+                Log.d("SAVE_CROPPED", "Размер файла: ${File(filePath).length()} байт")
+                Log.d("SAVE_CROPPED", "📍 Полный путь: $filePath")
+
             }
         } catch (e: Exception) {
             throw e

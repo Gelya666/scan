@@ -33,8 +33,8 @@ class RecyclerAdapter(private val activity: Activity, val pdfFiles: List<PdfFile
         holder.pdfCreateDate.text = pdfFile.pdfDate
         // holder.imagePdfFile.setImageURI(pdfFile.PathPdfFile)
         loadPdfPreviewImage(pdfFile.PathPdfFile, holder.imagePdfFile)
-        holder.pdfName.setOnClickListener {
-            listener.onPdfNameClick(pdfFile)
+        holder.itemView.setOnClickListener {
+            listener.onItemClick(pdfFile)
         }
         holder.point.setOnClickListener {
             listener.onFileClick(position, pdfFile.pdfName!!, pdfFile)

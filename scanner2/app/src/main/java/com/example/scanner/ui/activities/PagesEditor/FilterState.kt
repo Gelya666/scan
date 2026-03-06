@@ -14,13 +14,14 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.io.File
 import java.io.FileOutputStream
 
 class FilterState(override val activity: PdfPagesEditorActivity) : PhotoViewPagerState {
     override val stateData = StateData()
     private var currentFilter: PhotoFilters.FilterType = PhotoFilters.FilterType.NONE
 
-    override fun enter() {
+    override fun enter(){
         saveOriginalBitmapForCurrentPosition()
         setupFilterPanel()
         showFilterPanel()
@@ -112,8 +113,13 @@ class FilterState(override val activity: PdfPagesEditorActivity) : PhotoViewPage
         }
     }
 
+    //сохранение оригинала фото для текущей позиции
     private fun saveOriginalBitmapForCurrentPosition() {
+
+        //берёт путь к текущему фото из списка всех путей
         val photoPath = activity.photoPaths[stateData.currentPosition]
+
+        //загрука изображения из файла в оперативную память
         val bitmap = BitmapFactory.decodeFile(photoPath)
         bitmap?.let {
             stateData.originalBitmaps[stateData.currentPosition] = it.copy(Bitmap.Config.ARGB_8888, true)
@@ -149,6 +155,10 @@ class FilterState(override val activity: PdfPagesEditorActivity) : PhotoViewPage
     private fun saveFilterImageToFile() {
         val position = stateData.currentPosition
         val photoPath = activity.photoPaths[position]
+
+        Log.d("SAVE_FILTER", "Начинаем сохранение для позиции $position")
+        Log.d("SAVE_FILTER", "Путь к файлу: $photoPath")
+
         val currentIntensity = activity.adapter.filterIntensityMap[position] ?: 1.0f
 
         if (currentFilter != PhotoFilters.FilterType.NONE) {
@@ -156,14 +166,23 @@ class FilterState(override val activity: PdfPagesEditorActivity) : PhotoViewPage
                 try {
                     val originalBitmap = stateData.originalBitmaps[position]
                     originalBitmap?.let { bitmap ->
+
+                        Log.d("SAVE_FILTER", "Оригинал: ${bitmap.width}x${bitmap.height}")
+
                         val filteredBitmap = PhotoFilters.applyFilter(
                             activity,
                             bitmap,
                             currentFilter,
                             currentIntensity
                         )
+
+                        Log.d("SAVE_FILTER", "Фильтр: ${filteredBitmap.width}x${filteredBitmap.height}")
+
                         FileOutputStream(photoPath).use { out ->
                             filteredBitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)
+
+                            Log.d("SAVE_FILTER", "✅ Файл сохранён: $photoPath")
+                            Log.d("SAVE_FILTER", "Размер файла: ${File(photoPath).length()} байт")
                         }
                         stateData.originalBitmaps[position] =
                             filteredBitmap.copy(Bitmap.Config.ARGB_8888, true)

@@ -1,4 +1,5 @@
 package com.example.scanner.ui.activities
+import android.annotation.SuppressLint
 import android.content.Intent
 import android.content.Intent.EXTRA_STREAM
 import android.content.Intent.EXTRA_TITLE
@@ -14,6 +15,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.FileProvider
+import androidx.core.net.toUri
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -21,6 +23,7 @@ import com.example.scanner.R
 import com.example.scanner.databinding.ActivityMainBinding
 import com.example.scanner.service.CameraManager
 import com.example.scanner.ui.activities.PagesEditor.PdfPagesEditorActivity
+import com.example.scanner.ui.activities.PagesEditor.SizeDatePdf
 import com.example.scanner.ui.adapters.FilesManager
 import com.example.scanner.ui.adapters.RecyclerAdapter
 import com.example.scanner.ui.fragments.FileOptionsDialogFragment
@@ -39,6 +42,7 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
     private lateinit var cameraManager: CameraManager
     private val allPhotoPaths = mutableListOf<String>()
     private lateinit var adapter: RecyclerAdapter
+    private val addedFromPdfActivity=mutableListOf<PdfFile>()
 
     //все файлы
     private val allFiles = mutableListOf<PdfFile>()
@@ -48,6 +52,7 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
 
     //удалённые файлы
     private val deletedFilesId = mutableSetOf<String>()
+    private val sizeAndDate= SizeDatePdf()
     val filePickerLauncher = registerForActivityResult(
         ActivityResultContracts.OpenDocument()
     ) { uri: Uri? ->
@@ -116,6 +121,9 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
         loadDeletesFilesId()
         filterFiles()
         applySavedNamesToFiles()
+        checkForFileToAdd()
+        //loadPdfFromPdfFileActivity()
+        loadAddedFiles()
     }
 
     private fun filterFiles() {
@@ -135,6 +143,8 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
 
     // создание пдф из фото
     private fun createPdfFromPhoto() {
+
+        //если разрешения нету
         if (!cameraManager.checkCameraPermission()) {
             cameraManager.requestCameraPermission()
         }
@@ -147,6 +157,8 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
                 photoFile
             )//владелец название тип значение
             Log.d("Angel", "Текущий путь ${photoUri}")
+
+            //открытие камеры
             takePicture.launch(photoUri!!)
             Log.d("Angel", "Записать ${photoUri}")
         } catch (e: IOException) {
@@ -180,9 +192,14 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
     }
 
     @Throws(IOException::class)
+
+    //создание уникального временного файла в приватной папке приложения
+    // для сохранения фотографии с камеры
     private fun createImageFile(): File {
         val timeStamp: String =
             SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+
+        //путь к приватной папке с изображениями куда сохраняются фотографии с камеры
         val storageDir: File? = getExternalFilesDir(Environment.DIRECTORY_PICTURES)
         return File.createTempFile("JPEG_${timeStamp}_", ".jpg", storageDir)
     }
@@ -219,18 +236,32 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
 
             //берем это элемент и добавляет  в множество уадаленного спика
             val deletedFile = visibleFiles[position]
+
+            //поиск элемента в списке у которого id совпадает с удаляемым id
+            val indexInAdded=addedFromPdfActivity.indexOfFirst{it.id==deletedFile.id}
+            if(indexInAdded>=0){
+                removeAddedFile(indexInAdded)
+            }
             deletedFilesId.add(deletedFile.id)
             saveDeletesFileId()
 
             //удаляем по позиции из отображаемых файлов
             visibleFiles.removeAt(position)
+
             //сообщается адаптеру об удаленном элементе
             adapter.notifyItemRemoved(position)
+
             //обновление элементов по позициям
             adapter.notifyItemRangeChanged(position, visibleFiles.size - position)
             Toast.makeText(this, "Файл удален:$filename", Toast.LENGTH_SHORT).show()
         }
 
+    }
+    private fun removeAddedFile(position: Int) {
+        if (position < addedFromPdfActivity.size) {
+            addedFromPdfActivity.removeAt(position)
+            saveAddedFiles()  // обновляем сохраненный список
+        }
     }
 
     override fun onReject(filename: String) {
@@ -266,6 +297,12 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
             //присваивание новое имя файлу
             renameToFile.pdfName = newName
 
+            val index=addedFromPdfActivity.indexOfFirst{it.id==renameToFile.id}
+            if(index>=0){
+                addedFromPdfActivity[index].pdfName=newName
+            }
+            saveAddedFiles()
+
             //сохранение нового имени
             saveFileName(renameToFile.id, newName)
 
@@ -281,7 +318,11 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
          dialog.show(supportFragmentManager, "file_options_dialog")
     }
 
-    override fun onPdfNameClick(pdfFile: PdfFile){
+    override fun onItemClick(pdfFile: PdfFile){
+
+        Log.d("PDF_CLICK", "pdfName = ${pdfFile.pdfName}")
+        Log.d("PDF_CLICK", "pdfFile.PathPdfFile = ${pdfFile.PathPdfFile}")
+        Log.d("PDF_CLICK", "id = ${pdfFile.id}")
         val uri=pdfFile.PathPdfFile
         if(uri!=null){
             val intent=Intent(this,PdfFileActivity::class.java)
@@ -313,7 +354,115 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
             e.printStackTrace()
         }
     }
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        checkForFileToAdd()
+    }
+    @SuppressLint("SuspiciousIndentation")
+    private fun checkForFileToAdd(){
+        val filePath = intent.getStringExtra("PDF_FILE_PATH")
+        val fileName = intent.getStringExtra("PDF_FILE_NAME")
+        val uriString=intent.getStringExtra("PDF_URI")
+        if(uriString!=null && filePath!=null && fileName!=null) {
+            val uri = uriString.toUri()
+            val file = File(filePath)
+            if (file.exists()) {
+                val newPdf = PdfFile(
+                    PathPdfFile = uri,
+                    pdfName = fileName,
+                    pdfSize = sizeAndDate.getFileSize(filePath),
+                    pdfDate = sizeAndDate.getCurrentDate(),
+                    id = filePath
+                )
+                addedFromPdfActivity.add(newPdf)
+                saveAddedFiles()
 
+                Log.d("MY_APP", "Размер allFiles ДО добавления: ${allFiles.size}")
+                allFiles.add(newPdf)
+                Log.d("MY_APP", "Размер allFiles ПОСЛЕ добавления: ${allFiles.size}")
+
+                Log.d("MY_APP", "Размер visibleFiles ДО добавления: ${visibleFiles.size}")
+                visibleFiles.add(newPdf)
+                Log.d("MY_APP", "Размер visibleFiles ПОСЛЕ добавления: ${visibleFiles.size}")
+
+                adapter.notifyItemInserted(visibleFiles.size - 1)
+
+                // ПОКАЗЫВАЕМ СООБЩЕНИЕ
+                Toast.makeText(this, "Файл добавлен: $fileName", Toast.LENGTH_SHORT).show()
+
+                // ОЧИЩАЕМ INTENT, ЧТОБЫ НЕ ДОБАВИТЬ СНОВА
+                intent.removeExtra("PDF_FILE_PATH")
+                intent.removeExtra("PDF_URI")
+            }else{
+                Log.e("MAIN","Файл не существует $filePath")
+            }
+        }
+    }
+    private fun saveAddedFiles(){
+        val prefs=getSharedPreferences("added_files",MODE_PRIVATE)
+        val editor=prefs.edit()
+
+        //сохраняем количество файлов
+        editor.putInt("added_count",addedFromPdfActivity.size)
+
+        //проход по всем элементам списка
+        for(i in addedFromPdfActivity.indices){
+
+            //берем файл из списка по индексу i
+            val file=addedFromPdfActivity[i]
+
+            //запись в блокнот путь к файлу,имя файла
+            editor.putString("added_path_$i", file.id)
+            editor.putString("added_name_$i", file.pdfName)
+            editor.putString("added_size_$i", file.pdfSize)
+            editor.putString("added_date_$i", file.pdfDate)
+        }
+        editor.apply()
+        }
+    private fun loadAddedFiles() {
+        val prefs = getSharedPreferences("added_files", MODE_PRIVATE)
+
+        //количесво сохраненных фалов в блокноте added_count или 0
+        val count = prefs.getInt("added_count", 0)
+
+        //цикл выполнится count раз
+        for (i in 0 until count) {
+            val path = prefs.getString("added_path_$i", null)
+            val name = prefs.getString("added_name_$i", null)
+
+            if (path != null && name != null) {
+                val file = File(path)
+                if (file.exists()) {
+                    val uri = FileProvider.getUriForFile(
+                        this,
+                        "com.example.scanner.fileprovider",
+                        file
+                    )
+
+                    val pdf = PdfFile(
+                        PathPdfFile = uri,
+                        pdfName = name,
+                        pdfSize = prefs.getString("added_size_$i", "0 KB") ?: "0 KB",
+                        pdfDate = prefs.getString("added_date_$i", "Дата") ?: "Дата",
+                        id = path
+                    )
+
+                    // Восстанавливаем в оба списка
+                    addedFromPdfActivity.add(pdf)
+                    allFiles.add(pdf)
+                    visibleFiles.add(pdf)
+
+                    Log.d("LOAD", "Загружен добавленный файл: $name")
+                } else {
+                    Log.d("LOAD", "Файл не существует: $path")
+                }
+            }
+        }
+
+        adapter.notifyDataSetChanged()
+        Log.d("LOAD", "Всего добавленных файлов: ${addedFromPdfActivity.size}")
+    }
     override fun sharePdfFile(pdfFile: PdfFile) {
         val uri=pdfFile.PathPdfFile?:return
         shareFile(uri,pdfFile.pdfName?:"документ.пдф")
@@ -326,6 +475,7 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
         //берем строку по ключу "deleted_files"если нет то пустая строка
         val deletedIdsString=prefs.getString("deleted_files","")?:""
         Log.d("TEST", "В файле: $deletedIdsString")
+
         //очищает множество строк
         deletedFilesId.clear()
         Log.d("TEST", "После clear: deletedFilesId = $deletedFilesId")
@@ -335,6 +485,7 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
         if(deletedIdsString.isNotEmpty()){
             deletedIdsString.split(",").forEach{id->
                 val trimmedId = id.trim()
+
                 //если id не пустое,добавляю во множество
            if( trimmedId.isNotEmpty()){
                deletedFilesId.add( trimmedId)
