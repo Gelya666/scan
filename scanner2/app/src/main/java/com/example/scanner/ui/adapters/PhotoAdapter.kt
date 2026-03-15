@@ -25,11 +25,17 @@ class PhotoAdapter(
     private val context: Context,
     private var photoPaths: List<String>,
     private var isCropMode: Boolean = false
+
+    //карта для хранения фильтров по позициям ,
+
+    //сам список битмапов
+
 ): RecyclerView.Adapter <PhotoAdapter.PhotoViewHolder>() {
     inner class PhotoViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val imageView: ImageView = itemView.findViewById(R.id.photoImageView)
         val cropOverlay: SimpleCropOverlayView = itemView.findViewById(R.id.cropOverlay)
 
+        //заполнение view данными
         fun bind(
             photoPath: String,
             filterType: PhotoFilters.FilterType,
@@ -38,14 +44,18 @@ class PhotoAdapter(
         ) {
             loadImageWithFilter(photoPath, filterType, intensity, isCropMode)
             cropOverlay.visibility = if (isCropMode) View.VISIBLE else View.GONE
-            //  if (!isCropMode) {
+            //  if (!isCropMode) {ч
             //cropOverlay.resetCrop()
             //}
         }
 
         fun loadImageWithFilter(photoPath: String, filterType: PhotoFilters.FilterType, intensity: Float, isCropMode: Boolean) {
+           //создание области scope которая управляет жизненным циклом корутин
+            //запуск одной корутины внутри scope
             CoroutineScope(Dispatchers.IO).launch {
                 try {
+
+                    //создание настроек с уменьшением в 2 раза
                     val options = BitmapFactory.Options().apply {
                         inSampleSize = 2
                     }
@@ -69,8 +79,12 @@ class PhotoAdapter(
             }
         }
     }
-
+   //карта для хранения фильтров каждой позиции
     private val filtersMap = mutableMapOf<Int, PhotoFilters.FilterType>()
+
+    //карта для хранения интенсивности каждой позиции
+
+    private val bitmaps: MutableMap<Int, Bitmap> =mutableMapOf()
     val filterIntensityMap = mutableMapOf<Int, Float>()
     val rotationStates= mutableMapOf<Int,Float>()
     private val originalImages =mutableMapOf<Int,String>()
@@ -80,8 +94,14 @@ class PhotoAdapter(
     override fun getItemCount(): Int = photoPaths.size
 
     fun setFilterForPosition(position: Int, filterType: PhotoFilters.FilterType, intensity: Float = 1.0f) {
+
+        //присваиваем карте фильтров по позиции тип
         filtersMap[position] = filterType
+
+        //присваивание карте интенс интенсивности по позиции интенсивность
         filterIntensityMap[position] = intensity
+
+        //обновить элемент по позиции
         notifyItemChanged(position)
     }
 
@@ -169,4 +189,21 @@ class PhotoAdapter(
         this.photoPaths = newPhotoPath
         notifyDataSetChanged()
     }
+    fun getFilterForPosition(position: Int): PhotoFilters.FilterType? {
+        return if (position in 0 until itemCount) filtersMap[position] else null
+    }
+
+    fun getBitmapAtPosition(position: Int): Bitmap? {
+        return if (position in 0 until itemCount) bitmaps[position] else null
+    }
+    fun getFiltersInfo():String{
+        val info=StringBuilder()
+        for(i in 0 until itemCount){
+            val filter=filtersMap[i]
+            val intensity=filterIntensityMap[i]
+            info.append("Страница $i: фильтр =${filter?:"НЕТ"},интенсивность=${intensity?:1.0f}\n")
+        }
+       return info.toString()
+    }
+
 }

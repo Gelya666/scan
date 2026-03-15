@@ -28,6 +28,8 @@ class CropState(override val activity: PdfPagesEditorActivity) : PhotoViewPagerS
 
     override fun onBackPressed(): Boolean {
         exitCropModeWithoutSaving()
+        activity.transitionTo(NormalState(activity))
+        activity.updateAllUI()
         return true
     }
 

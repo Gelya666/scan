@@ -129,8 +129,13 @@ class PdfPagesEditorActivity : AppCompatActivity() {
         btnRedo.setOnClickListener { handleEvent(ViewPagerEvent.RedoClicked) }
 
         btnApply.setOnClickListener { handleEvent(ViewPagerEvent.ApplyClicked) }
-        btnReturnToNormalMode.setOnClickListener { returnToNormalState() }
-
+        btnReturnToNormalMode.setOnClickListener {
+            val handled = currentState.onBackPressed()
+           if (!handled) {
+                transitionTo(NormalState(this))
+            }
+            updateAllUI()
+        }
         btnFilters.setOnClickListener { handleEvent(ViewPagerEvent.FilterClicked) }
         btnRotate.setOnClickListener { handleEvent(ViewPagerEvent.RotateClicked) }
         btnCrop.setOnClickListener { handleEvent(ViewPagerEvent.CropClicked) }
@@ -150,6 +155,7 @@ class PdfPagesEditorActivity : AppCompatActivity() {
 
     // State Management
     fun transitionTo(newState: PhotoViewPagerState) {
+        Log.d("TRANSITION", "Переход из ${currentState::class.simpleName} в ${newState::class.simpleName}")
         currentState.exit()
         currentState = newState
         // Должно быть: newState.stateData.currentPosition = currentState.stateData.currentPosition
@@ -214,6 +220,8 @@ class PdfPagesEditorActivity : AppCompatActivity() {
     }
 
     fun updateFilterUI() {
+
+        //изменения цвета кнопки
         btnSave.setBackgroundColor(ContextCompat.getColor(this, R.color.color_filter))
         // Filter panel visibility is managed by FilterState
         updateAllUI()
@@ -297,9 +305,16 @@ class PdfPagesEditorActivity : AppCompatActivity() {
         val pdfFileName = "photos_$timeStamp.pdf"
         val pdfFilePath = createAndSavePdfNow(photoPaths, pdfFileName)
         if (pdfFilePath != null ) {
+            val filtersInfo=adapter.getFiltersInfo()
+
+            Log.d("PDF_CREATE", "Путь к PDF: $pdfFilePath")
+            Log.d("PDF_CREATE", "Имя файла: $pdfFileName")
+            Log.d("PDF_CREATE", "Информация о фильтрах: $filtersInfo")
+
             val intent = Intent(this, MainActivity::class.java).apply {
                 putExtra("pdf_file_path", pdfFilePath)
                 putExtra("pdf_file_name", pdfFileName)
+                putExtra("filters_info", filtersInfo)
             }
                 startActivity(intent)
                 finish()
@@ -309,6 +324,26 @@ class PdfPagesEditorActivity : AppCompatActivity() {
     }
     private fun createAndSavePdfNow(imagePaths: ArrayList<String>,fileName: String):Uri?{
         return try{
+            Log.d("PDF_DEBUG", "=== НАЧАЛО СОЗДАНИЯ PDF ===")
+            Log.d("PDF_DEBUG", "fileName: $fileName")
+            Log.d("PDF_DEBUG", "Количество изображений: ${imagePaths.size}")
+
+            // Логируем все пути к изображениям
+            imagePaths.forEachIndexed { index, path ->
+                Log.d("PDF_DEBUG", "  Изображение $index: $path")
+            }
+            // Если у нас есть доступ к адаптеру (нужно передать его в функцию)
+            if (::adapter.isInitialized) {  // проверяем, что адаптер инициализирован
+                val filtersInfo = adapter.getFiltersInfo()
+                Log.d("PDF_DEBUG", "Информация о фильтрах:\n$filtersInfo")
+
+                // Детальная информация по каждой позиции
+                for (i in 0 until adapter.itemCount) {
+                    val filter = adapter.getFilterForPosition(i)
+                    val bitmap = adapter.getBitmapAtPosition(i)
+                    Log.d("PDF_DEBUG", "Позиция $i: фильтр=$filter, bitmap=${bitmap != null}")
+                }
+            }
             val contentValues=ContentValues().apply{
                 put(MediaStore.Files.FileColumns.DISPLAY_NAME,fileName)
                 put(MediaStore.Files.FileColumns.MIME_TYPE,"application/pdf")
@@ -354,7 +389,7 @@ class PdfPagesEditorActivity : AppCompatActivity() {
             null
         }
     }
-    fun showHalfScreenDialog() {
+    fun  showHalfScreenDialog() {
         val dialog = HalfScreenDialogFragment.newInstance(ArrayList())
         dialog.show(supportFragmentManager, "half_screen_dialog")
     }
@@ -367,5 +402,6 @@ class PdfPagesEditorActivity : AppCompatActivity() {
             viewPager.adapter = null
         }
     }
+
 }
 
