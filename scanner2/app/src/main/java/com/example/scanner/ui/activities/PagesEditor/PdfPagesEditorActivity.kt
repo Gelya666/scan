@@ -306,11 +306,6 @@ class PdfPagesEditorActivity : AppCompatActivity() {
         val pdfFilePath = createAndSavePdfNow(photoPaths, pdfFileName)
         if (pdfFilePath != null ) {
             val filtersInfo=adapter.getFiltersInfo()
-
-            Log.d("PDF_CREATE", "Путь к PDF: $pdfFilePath")
-            Log.d("PDF_CREATE", "Имя файла: $pdfFileName")
-            Log.d("PDF_CREATE", "Информация о фильтрах: $filtersInfo")
-
             val intent = Intent(this, MainActivity::class.java).apply {
                 putExtra("pdf_file_path", pdfFilePath)
                 putExtra("pdf_file_name", pdfFileName)
@@ -324,32 +319,13 @@ class PdfPagesEditorActivity : AppCompatActivity() {
     }
     private fun createAndSavePdfNow(imagePaths: ArrayList<String>,fileName: String):Uri?{
         return try{
-            Log.d("PDF_DEBUG", "=== НАЧАЛО СОЗДАНИЯ PDF ===")
-            Log.d("PDF_DEBUG", "fileName: $fileName")
-            Log.d("PDF_DEBUG", "Количество изображений: ${imagePaths.size}")
-
-            // Логируем все пути к изображениям
-            imagePaths.forEachIndexed { index, path ->
-                Log.d("PDF_DEBUG", "  Изображение $index: $path")
-            }
-            // Если у нас есть доступ к адаптеру (нужно передать его в функцию)
-            if (::adapter.isInitialized) {  // проверяем, что адаптер инициализирован
-                val filtersInfo = adapter.getFiltersInfo()
-                Log.d("PDF_DEBUG", "Информация о фильтрах:\n$filtersInfo")
-
-                // Детальная информация по каждой позиции
-                for (i in 0 until adapter.itemCount) {
-                    val filter = adapter.getFilterForPosition(i)
-                    val bitmap = adapter.getBitmapAtPosition(i)
-                    Log.d("PDF_DEBUG", "Позиция $i: фильтр=$filter, bitmap=${bitmap != null}")
-                }
-            }
             val contentValues=ContentValues().apply{
                 put(MediaStore.Files.FileColumns.DISPLAY_NAME,fileName)
                 put(MediaStore.Files.FileColumns.MIME_TYPE,"application/pdf")
                 put(MediaStore.Files.FileColumns.DATE_ADDED,System.currentTimeMillis()/1000)
                 put(MediaStore.Files.FileColumns.SIZE,0)
             }
+
             val pdfUri=contentResolver.insert(MediaStore.Files.getContentUri("external"),contentValues)
             if(pdfUri==null){
                 Log.e("angel","Не удалось загрузить файл в хранилище")

@@ -3,7 +3,6 @@ package com.example.scanner.ui.fragments
 import android.content.Context
 import android.graphics.drawable.ColorDrawable
 import android.os.Bundle
-import android.util.Log
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
@@ -13,11 +12,13 @@ import android.widget.Toast
 import androidx.fragment.app.DialogFragment
 import com.example.scanner.R
 import com.example.scanner.ui.activities.PagesEditor.PdfPagesEditorActivity
+import java.io.File
 
 class HalfScreenDialogFragment : DialogFragment()
 {
     //переменная для хранения ссылки на объект реализующий интерфейс
     private var pdfSaveListener: PdfSaveListener? = null
+    private lateinit var emailSender: EmailSender
 
     //список путей к фотографиям
     private var photoPaths = arrayListOf<String>()
@@ -31,6 +32,7 @@ class HalfScreenDialogFragment : DialogFragment()
     }
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        emailSender= EmailSender(requireContext())
 
         //вызов функции для обработки всх кликов
         setupClickListeners(view)
@@ -65,6 +67,14 @@ class HalfScreenDialogFragment : DialogFragment()
             dismiss()
         }
         view.findViewById<View>(R.id.btn_email)?.setOnClickListener {
+            if(photoPaths.isEmpty()){
+                val testFile= File(requireContext().filesDir,"text.jpg")
+                if(!testFile.exists()){
+                    testFile.createNewFile()
+                }
+                photoPaths.add(testFile.absolutePath)
+            }
+            emailSender.sendMultipleImages(photoPaths)
             dismiss()
         }
         view.findViewById<View>(R.id.btn_undo)?.setOnClickListener{
@@ -118,12 +128,8 @@ class HalfScreenDialogFragment : DialogFragment()
             //создание пустого  bundle
             val arg=Bundle().apply{
 
-                Log.d("BUNDLE","путь до $imagePaths")
-
                 //помещение списка строк по ключу image_paths
                 putStringArrayList("image_paths",imagePaths)
-                val getPath=getStringArrayList("image_paths")
-                Log.d("BUNDLE","Получен путь $getPath")
             }
             //создание фрагмента и прикрепление bundle
             return HalfScreenDialogFragment().apply{

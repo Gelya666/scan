@@ -3,7 +3,6 @@ package com.example.scanner.ui.adapters
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
-import android.graphics.Rect
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
@@ -89,8 +88,7 @@ class PhotoAdapter(
     val rotationStates= mutableMapOf<Int,Float>()
     private val originalImages =mutableMapOf<Int,String>()
     private val imageRotate = ImageRotate()
-    private val cropStates = mutableMapOf<Int, Rect>() // состояния обрезки
-    private val originalBitmapsMap = mutableMapOf<String, Bitmap>()
+
     override fun getItemCount(): Int = photoPaths.size
 
     fun setFilterForPosition(position: Int, filterType: PhotoFilters.FilterType, intensity: Float = 1.0f) {
@@ -103,6 +101,13 @@ class PhotoAdapter(
 
         //обновить элемент по позиции
         notifyItemChanged(position)
+    }
+    fun getFilterForPosition(position: Int): PhotoFilters.FilterType {
+        val value = if (position in 0 until itemCount) filtersMap[position] else PhotoFilters.FilterType.NONE
+        if(value != null){
+            return value
+        }
+        return PhotoFilters.FilterType.NONE
     }
 
     fun clearFilter(position:Int){
@@ -188,9 +193,6 @@ class PhotoAdapter(
     fun updateData(newPhotoPath: List<String>) {
         this.photoPaths = newPhotoPath
         notifyDataSetChanged()
-    }
-    fun getFilterForPosition(position: Int): PhotoFilters.FilterType? {
-        return if (position in 0 until itemCount) filtersMap[position] else null
     }
 
     fun getBitmapAtPosition(position: Int): Bitmap? {
