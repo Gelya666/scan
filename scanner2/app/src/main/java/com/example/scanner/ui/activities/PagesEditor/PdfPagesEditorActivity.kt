@@ -59,8 +59,6 @@ class PdfPagesEditorActivity : AppCompatActivity() {
     lateinit var intensitySeekBar: SeekBar
     lateinit var intensityValue: TextView
 
-    // Data only
-    lateinit var photoPaths: ArrayList<String>
     lateinit var adapter: PhotoAdapter
     var currentPhotoFile: File? = null
 
@@ -80,7 +78,7 @@ class PdfPagesEditorActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_photo_view_pager)
 
-        photoPaths = intent.getStringArrayListExtra("photo_paths") ?: ArrayList()
+        val stringPhotoPaths = intent.getStringArrayListExtra("photo_paths") ?: ArrayList()
         val initialPosition = intent.getIntExtra("current_position", 0)
         // Initialize state with current position
         currentState = NormalState(this).apply {
@@ -305,11 +303,9 @@ class PdfPagesEditorActivity : AppCompatActivity() {
         val pdfFileName = "photos_$timeStamp.pdf"
         val pdfFilePath = createAndSavePdfNow(photoPaths, pdfFileName)
         if (pdfFilePath != null ) {
-            val filtersInfo=adapter.getFiltersInfo()
             val intent = Intent(this, MainActivity::class.java).apply {
                 putExtra("pdf_file_path", pdfFilePath)
                 putExtra("pdf_file_name", pdfFileName)
-                putExtra("filters_info", filtersInfo)
             }
                 startActivity(intent)
                 finish()

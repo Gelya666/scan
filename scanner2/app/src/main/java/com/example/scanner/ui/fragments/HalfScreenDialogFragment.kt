@@ -21,7 +21,7 @@ class HalfScreenDialogFragment : DialogFragment()
     private lateinit var emailSender: EmailSender
 
     //список путей к фотографиям
-    private var photoPaths = arrayListOf<String>()
+
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?

@@ -1,7 +1,6 @@
 package com.example.scanner.ui.adapters
 
 import android.content.Context
-import android.graphics.Bitmap
 import android.graphics.BitmapFactory
 import android.util.Log
 import android.view.LayoutInflater
@@ -12,6 +11,7 @@ import android.widget.Toast
 import androidx.recyclerview.widget.RecyclerView
 import com.example.scanner.PhotoFilters
 import com.example.scanner.R
+import com.example.scanner.ui.activities.PagesEditor.StateData
 import com.example.scanner.ui.customviews.SimpleCropOverlayView
 import com.example.scanner.viewmodel.ImageRotate
 import kotlinx.coroutines.CoroutineScope
@@ -23,12 +23,8 @@ import java.io.File
 class PhotoAdapter(
     private val context: Context,
     private var photoPaths: List<String>,
-    private var isCropMode: Boolean = false
-
-    //карта для хранения фильтров по позициям ,
-
-    //сам список битмапов
-
+    private val stateData: StateData,
+    private var isCropMode: Boolean = false,
 ): RecyclerView.Adapter <PhotoAdapter.PhotoViewHolder>() {
     inner class PhotoViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         val imageView: ImageView = itemView.findViewById(R.id.photoImageView)
@@ -78,32 +74,21 @@ class PhotoAdapter(
             }
         }
     }
-   //карта для хранения фильтров каждой позиции
-    private val filtersMap = mutableMapOf<Int, PhotoFilters.FilterType>()
 
-    //карта для хранения интенсивности каждой позиции
-
-    private val bitmaps: MutableMap<Int, Bitmap> =mutableMapOf()
-    val filterIntensityMap = mutableMapOf<Int, Float>()
-    val rotationStates= mutableMapOf<Int,Float>()
-    private val originalImages =mutableMapOf<Int,String>()
     private val imageRotate = ImageRotate()
 
     override fun getItemCount(): Int = photoPaths.size
 
     fun setFilterForPosition(position: Int, filterType: PhotoFilters.FilterType, intensity: Float = 1.0f) {
 
-        //присваиваем карте фильтров по позиции тип
-        filtersMap[position] = filterType
-
-        //присваивание карте интенс интенсивности по позиции интенсивность
-        filterIntensityMap[position] = intensity
+        stateData.SetFilterData(position, filterType, intensity)
 
         //обновить элемент по позиции
         notifyItemChanged(position)
     }
+
     fun getFilterForPosition(position: Int): PhotoFilters.FilterType {
-        val value = if (position in 0 until itemCount) filtersMap[position] else PhotoFilters.FilterType.NONE
+        val value = if (position in 0 until itemCount) stateData.GetFilterType(position)else PhotoFilters.FilterType.NONE
         if(value != null){
             return value
         }
@@ -111,8 +96,7 @@ class PhotoAdapter(
     }
 
     fun clearFilter(position:Int){
-        filtersMap.remove(position)
-        filterIntensityMap.remove(position)
+        stateData.removeFilterAndIntensity(position)
         notifyItemChanged(position)
     }
 
@@ -140,7 +124,7 @@ class PhotoAdapter(
            }
            val backupFile= File(backupDir, "original_${position}.jpg")
            File(originalPath).copyTo(backupFile,true)
-           originalImages[position]=backupFile.absolutePath
+         stateData.SetOriginaImages(position,backupFile.absolutePath)
 
        }catch(e: Exception){
            Log.e("Rotation", "Ошибка сохранения оригинала: ${e.message}")
@@ -154,10 +138,10 @@ class PhotoAdapter(
         if(position in 0 until photoPaths.size){
             val imagePath =photoPaths[position]
 
-            if(!originalImages.containsKey(position)){
+            if(!stateData.getOriginalImagesContainsKey(position)){
                 saveOriginalImage(position)
             }
-            val currentRotation=rotationStates[position] ?: 0f
+            var currentRotation=stateData.getRotationStates(position)
             val newRotation=(currentRotation+degrees)%360
 
             imageRotate.rotateImage(
@@ -167,7 +151,7 @@ class PhotoAdapter(
                 override fun onRotationStarted(){}
 
                 override fun onRotationSuccess() {
-                    rotationStates[position]=newRotation
+                    stateData.setRotationStates(position, newRotation)
                     notifyItemChanged(position)
                     Toast.makeText(context,"Изображение перевёрнуто успешно", Toast.LENGTH_SHORT).show()
                 }
@@ -186,26 +170,13 @@ class PhotoAdapter(
     override fun onBindViewHolder(holder: PhotoViewHolder, position:Int) {
         // Загружаем и отображаем фото
         val photoPath = photoPaths[position]
-        val filterType = filtersMap[position]?: PhotoFilters.FilterType.NONE
-        val intensity = filterIntensityMap[position]?:1.0f
+        val filterType = stateData.GetFilterType(position)
+        val intensity = stateData.GetFilterIntensity(position)
         holder.bind(photoPath,filterType,intensity,isCropMode)
     }
     fun updateData(newPhotoPath: List<String>) {
         this.photoPaths = newPhotoPath
         notifyDataSetChanged()
-    }
-
-    fun getBitmapAtPosition(position: Int): Bitmap? {
-        return if (position in 0 until itemCount) bitmaps[position] else null
-    }
-    fun getFiltersInfo():String{
-        val info=StringBuilder()
-        for(i in 0 until itemCount){
-            val filter=filtersMap[i]
-            val intensity=filterIntensityMap[i]
-            info.append("Страница $i: фильтр =${filter?:"НЕТ"},интенсивность=${intensity?:1.0f}\n")
-        }
-       return info.toString()
     }
 
 }
