@@ -10,8 +10,7 @@ import com.example.scanner.ui.adapters.PhotoAdapter
 import java.io.File
 import java.io.FileOutputStream
 
-class CropState(override val activity: PdfPagesEditorActivity) : PhotoViewPagerState {
-    override val stateData = StateData()
+class CropState(override val activity: PdfPagesEditorActivity,override val stateData:StateData) : PhotoViewPagerState {
     private var currentCropRect: Rect? = null
 
     override fun enter() {
@@ -51,8 +50,10 @@ class CropState(override val activity: PdfPagesEditorActivity) : PhotoViewPagerS
 
     private fun saveOriginalBackup() {
         try {
-            val position = stateData.currentPosition
-            val photoPath = activity.photoPaths[position]
+            //val position = stateData.currentPosition
+            val position = stateData.getCurrentPosition()
+            //val photoPath = activity.photoPaths[position]
+            val photoPath = stateData.getPhotoPathPosition(position)
             val originalFile = File(photoPath)
             if (!originalFile.exists()) return
 
@@ -61,7 +62,8 @@ class CropState(override val activity: PdfPagesEditorActivity) : PhotoViewPagerS
 
             val backupFile = File(backupDir, "backup_${originalFile.name}")
             originalFile.copyTo(backupFile, overwrite = true)
-            stateData.originalImagesBackup[position] = backupFile.absolutePath
+          //  stateData.originalImagesBackup[position] = backupFile.absolutePath
+            stateData. SetOriginaImages(position,backupFile.absolutePath)
         } catch (e: Exception) {
             Log.e("CropState", "Error creating backup: ${e.message}")
         }
@@ -69,8 +71,10 @@ class CropState(override val activity: PdfPagesEditorActivity) : PhotoViewPagerS
 
     private fun performCrop() {
         try {
-            val position = stateData.currentPosition
-            val currentPhotoPath = activity.photoPaths[position]
+           //val position = stateData.currentPosition
+            val position = stateData.getCurrentPosition()
+            //val currentPhotoPath = activity.photoPaths[position]
+            val currentPhotoPath = stateData.getPhotoPathPosition(position)
             val recyclerView = activity.viewPager.getChildAt(0) as? RecyclerView
             val currentViewHolder = recyclerView?.findViewHolderForAdapterPosition(position) as? PhotoAdapter.PhotoViewHolder
 
@@ -146,10 +150,12 @@ class CropState(override val activity: PdfPagesEditorActivity) : PhotoViewPagerS
 
     private fun deleteBackupForPosition(position: Int) {
         try {
-            val backupPath = stateData.originalImagesBackup[position]
+            //val backupPath = stateData.originalImagesBackup[position]
+            val backupPath = stateData.getOriginalImagesBackupPosition(position)
             backupPath?.let {
                 File(it).delete()
-                stateData.originalImagesBackup.remove(position)
+               // stateData.originalImagesBackup.remove(position)
+                stateData.removeOriginalImagesBackup(position)
             }
         } catch (e: Exception) {
             Log.e("CropState", "Error deleting backup: ${e.message}")

@@ -2,9 +2,7 @@ package com.example.scanner.ui.activities.PagesEditor
 
 import android.widget.Toast
 
-class RotateState(override val activity: PdfPagesEditorActivity) : PhotoViewPagerState {
-    override val stateData = StateData()
-
+class RotateState(override val activity: PdfPagesEditorActivity,override val stateData:StateData) : PhotoViewPagerState {
     override fun enter() {
         rotateCurrentImage()
         updateUI()
@@ -36,7 +34,7 @@ class RotateState(override val activity: PdfPagesEditorActivity) : PhotoViewPage
     }
 
     private fun rotateCurrentImage() {
-        activity.adapter.rotateImage(stateData.currentPosition, 90f)
+        activity.adapter.rotateImage(stateData.getCurrentPosition(), 90f)
     }
 
     private fun saveOnlyRotate() {

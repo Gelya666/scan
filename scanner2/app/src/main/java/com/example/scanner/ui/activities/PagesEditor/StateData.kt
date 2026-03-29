@@ -2,6 +2,8 @@ package com.example.scanner.ui.activities.PagesEditor
 
 import android.graphics.Bitmap
 import com.example.scanner.PhotoFilters
+import java.io.File
+
 class StateData(
 
     private var photoPaths: ArrayList<String> = arrayListOf<String>(),
@@ -23,14 +25,56 @@ class StateData(
         filtersMap[position] = filterType
         filterIntensityMap[position] = intensity;
     }
-    fun GetFilterType(position:Int): PhotoFilters.FilterType{
+    fun getFilterType(position:Int): PhotoFilters.FilterType{
         val nullable = filtersMap[position]
         if(nullable == null)
             return PhotoFilters.FilterType.NONE
         return nullable
     }
-    fun setPhotoPaths(str:String): ArrayList<String>{
-         photoPaths.add(str)
+    fun setPhotoPaths(paths:ArrayList<String>){
+         photoPaths=paths
+    }
+    fun setPhotoPathsPosition(position:Int){
+        photoPaths[position]
+    }
+    fun getPhotoPaths(): ArrayList<String> {
+        return photoPaths
+    }
+    fun getPhotoPathOrNull(position:Int):String?{
+       return photoPaths.getOrNull(position)
+    }
+    fun getPhotoPathPosition(position:Int): String {
+       return photoPaths[position]
+    }
+    fun isPhotoPathsNotEmpty(): Boolean {
+        return photoPaths.isNotEmpty()
+    }
+    fun isPhotoPathsEmpty(): Boolean {
+       return photoPaths.isEmpty()
+    }
+    fun getFirstPhotoPath(): String? {
+      return photoPaths.getOrNull(0)
+    }
+    fun photoPathsAddFile(file: File) {
+       photoPaths.add(file.absolutePath)
+    }
+    fun getPhotoPathCurrentPosition(): String {
+       return  photoPaths[currentPosition]
+    }
+    fun getPositionOriginalBitmaps(): Bitmap? {
+       return originalBitmaps[currentPosition]
+    }
+    fun setOriginalBitmaps(bitmap:Bitmap){
+       originalBitmaps[currentPosition]=bitmap
+    }
+    fun clearPhotoPaths(){
+        photoPaths.clear()
+    }
+    fun setCurrentPosition(initialPosition:Int){
+        currentPosition=initialPosition
+    }
+    fun getCurrentPosition(): Int {
+        return currentPosition
     }
     fun getRotationStates(position:Int): Float {
         var currentRotation=rotationStates[position]
@@ -48,6 +92,12 @@ class StateData(
             return 1.0f
         return nullable
     }
+    fun setCurrentIntensity(intensity:Float){
+        currentIntensity=intensity
+    }
+    fun getCurrentIntensity(): Float {
+        return currentIntensity
+    }
     fun getOriginalImagesContainsKey(position:Int): Boolean {
         val containsKey=originalImages.containsKey(position)
         return containsKey
@@ -59,4 +109,16 @@ class StateData(
         filtersMap.remove(position)
         filterIntensityMap.remove(position)
     }
+    fun clearOriginalImagesBackup(){
+        originalImagesBackup.clear()
+    }
+    fun getOriginalImagesBackupPosition(position:Int) : String? {
+        return originalImagesBackup[position]
+    }
+
+    fun removeOriginalImagesBackup(position:Int){
+        originalImagesBackup.remove(position)
+    }
+
+
 }

@@ -88,7 +88,7 @@ class PhotoAdapter(
     }
 
     fun getFilterForPosition(position: Int): PhotoFilters.FilterType {
-        val value = if (position in 0 until itemCount) stateData.GetFilterType(position)else PhotoFilters.FilterType.NONE
+        val value = if (position in 0 until itemCount) stateData.getFilterType(position)else PhotoFilters.FilterType.NONE
         if(value != null){
             return value
         }
@@ -170,7 +170,7 @@ class PhotoAdapter(
     override fun onBindViewHolder(holder: PhotoViewHolder, position:Int) {
         // Загружаем и отображаем фото
         val photoPath = photoPaths[position]
-        val filterType = stateData.GetFilterType(position)
+        val filterType = stateData.getFilterType(position)
         val intensity = stateData.GetFilterIntensity(position)
         holder.bind(photoPath,filterType,intensity,isCropMode)
     }

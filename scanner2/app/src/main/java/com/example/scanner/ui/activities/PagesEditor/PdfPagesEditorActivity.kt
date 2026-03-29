@@ -58,8 +58,10 @@ class PdfPagesEditorActivity : AppCompatActivity() {
     lateinit var intensityPanel: LinearLayout
     lateinit var intensitySeekBar: SeekBar
     lateinit var intensityValue: TextView
+   var stateData=StateData()
 
     lateinit var adapter: PhotoAdapter
+
     var currentPhotoFile: File? = null
 
     // State Management only
@@ -78,11 +80,15 @@ class PdfPagesEditorActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_photo_view_pager)
 
+        //photoPaths
         val stringPhotoPaths = intent.getStringArrayListExtra("photo_paths") ?: ArrayList()
+        stateData.setPhotoPaths(stringPhotoPaths)
         val initialPosition = intent.getIntExtra("current_position", 0)
         // Initialize state with current position
         currentState = NormalState(this).apply {
-            stateData.currentPosition = initialPosition
+
+            //stateData.currentPosition = initialPosition
+            stateData.setCurrentPosition(initialPosition)
         }
         initViews()
         setupViewPager()
@@ -141,9 +147,12 @@ class PdfPagesEditorActivity : AppCompatActivity() {
     }
 
     private fun setupViewPager() {
-        adapter = PhotoAdapter(this, photoPaths, false)
+        //adapter = PhotoAdapter(this, photoPaths, false)
+
+        adapter = PhotoAdapter(this,stateData.getPhotoPaths(),stateData ,false)
         viewPager.adapter = adapter
-        viewPager.setCurrentItem(currentState.stateData.currentPosition, false)
+       // viewPager.setCurrentItem(currentState.stateData.currentPosition, false)
+        viewPager.setCurrentItem(currentState.stateData.getCurrentPosition(), false)
         viewPager.registerOnPageChangeCallback(object : ViewPager2.OnPageChangeCallback() {
             override fun onPageSelected(position: Int) {
                 handleEvent(ViewPagerEvent.PageSelected(position))
@@ -154,12 +163,13 @@ class PdfPagesEditorActivity : AppCompatActivity() {
     // State Management
     fun transitionTo(newState: PhotoViewPagerState) {
         Log.d("TRANSITION", "Переход из ${currentState::class.simpleName} в ${newState::class.simpleName}")
+        val currentPosition=currentState.stateData.getCurrentPosition()
         currentState.exit()
-        currentState = newState
+        newState.stateData.setCurrentPosition(currentPosition)
+        currentState= newState
+        currentState.enter()
         // Должно быть: newState.stateData.currentPosition = currentState.stateData.currentPosition
         // Пример: сохранить номер страницы при переходе между состояниями
-        currentState.stateData.currentPosition = currentState.stateData.currentPosition
-        currentState.enter()
     }
 
     // Event handling - delegate to current state
@@ -167,20 +177,14 @@ class PdfPagesEditorActivity : AppCompatActivity() {
         //проверка какой именно тип событий произошёл
         when (event) {
 
-            is ViewPagerEvent.CropClicked -> transitionTo(CropState(this).apply {
-                stateData.currentPosition = currentState.stateData.currentPosition
-            })
-            is ViewPagerEvent.FilterClicked -> transitionTo(FilterState(this).apply {
-                stateData.currentPosition = currentState.stateData.currentPosition
-            })
-            is ViewPagerEvent.RotateClicked -> transitionTo(RotateState(this).apply {
-                stateData.currentPosition = currentState.stateData.currentPosition
-            })
+            is ViewPagerEvent.CropClicked -> transitionTo(CropState(this,stateData))
+            is ViewPagerEvent.FilterClicked -> transitionTo(FilterState(this,stateData))
+            is ViewPagerEvent.RotateClicked -> transitionTo(RotateState(this,stateData))
             is ViewPagerEvent.PageSelected -> {
-                currentState.stateData.currentPosition = event.position
+                currentState.stateData.setCurrentPosition(event.position)
                 if (currentState !is NormalState) {
                     transitionTo(NormalState(this).apply {
-                        stateData.currentPosition = event.position
+                        stateData.setCurrentPosition(event.position)
                     })
                 }
             }
@@ -276,11 +280,14 @@ class PdfPagesEditorActivity : AppCompatActivity() {
             //если currentPhotoFile не null
             currentPhotoFile?.let { photoFile ->
                 if (photoFile.exists()) {
-                    photoPaths.add(photoFile.absolutePath)
-                    adapter.updateData(photoPaths)
+                    //photoPaths.add(photoFile.absolutePath)
+                    stateData.getPhotoPaths().add(photoFile.absolutePath)
+                    //adapter.updateData(photoPaths)
+                    adapter.updateData( stateData.getPhotoPaths())
 
                     //переключение viewPager на последнюю страницу
-                    viewPager.setCurrentItem(photoPaths.size - 1, true)
+                    //viewPager.setCurrentItem(photoPaths.size - 1, true)
+                    viewPager.setCurrentItem(stateData.getPhotoPaths().size - 1, true)
                     Toast.makeText(this, "Фото добавлено", Toast.LENGTH_SHORT).show()
                 }
             }
@@ -295,13 +302,15 @@ class PdfPagesEditorActivity : AppCompatActivity() {
         }
     }
     fun clearAllData() {
-        photoPaths.clear()
+        //photoPaths.clear()
+        stateData.clearPhotoPaths()
         adapter.updateData(ArrayList())
     }
     fun saveImageToPdf() {
         val timeStamp = SimpleDateFormat("yyyyMMdd-HHmmss", Locale.getDefault()).format(Date())
         val pdfFileName = "photos_$timeStamp.pdf"
-        val pdfFilePath = createAndSavePdfNow(photoPaths, pdfFileName)
+        //val pdfFilePath = createAndSavePdfNow(photoPaths, pdfFileName)
+        val pdfFilePath = createAndSavePdfNow(stateData.getPhotoPaths(), pdfFileName)
         if (pdfFilePath != null ) {
             val intent = Intent(this, MainActivity::class.java).apply {
                 putExtra("pdf_file_path", pdfFilePath)
@@ -362,13 +371,13 @@ class PdfPagesEditorActivity : AppCompatActivity() {
         }
     }
     fun  showHalfScreenDialog() {
-        val dialog = HalfScreenDialogFragment.newInstance(ArrayList())
+        val dialog = HalfScreenDialogFragment.newInstance(stateData.getPhotoPaths())
         dialog.show(supportFragmentManager, "half_screen_dialog")
     }
     override fun onDestroy() {
         super.onDestroy()
         // Clear backups from all states
-        currentState.stateData.originalImagesBackup.clear()
+        currentState.stateData.clearOriginalImagesBackup()
         if (isFinishing) {
             clearAllData()
             viewPager.adapter = null

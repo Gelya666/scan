@@ -15,19 +15,25 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import java.io.FileOutputStream
+import java.io.File
 import java.io.IOException
 
-class FilterState(override val activity: PdfPagesEditorActivity) : PhotoViewPagerState {
+class FilterState(override val activity: PdfPagesEditorActivity,override val stateData:StateData) : PhotoViewPagerState {
 
-    override val stateData = StateData()
     private var currentFilter: PhotoFilters.FilterType = PhotoFilters.FilterType.NONE
 
     @SuppressLint("SuspiciousIndentation")
     override fun enter(){
         val position = activity.viewPager.currentItem
 
-        val photoPath = activity.photoPaths.getOrNull(position)
+        // Проверяем каждый элемент списка
+        //val photoPath = activity.photoPaths.getOrNull(position)
+        val photoPath=stateData.getPhotoPathOrNull(position)
+        Log.d("ENTER", "photoPath = $photoPath")
+        if(photoPath==null){
+            Toast.makeText(activity,"Нет фото для позиции $position",Toast.LENGTH_SHORT).show()
+            return
+        }
 
         try {
             val bitmap = BitmapFactory.decodeFile(photoPath)
@@ -69,7 +75,9 @@ class FilterState(override val activity: PdfPagesEditorActivity) : PhotoViewPage
                 updateIntensityPanelVisibility(event.filterType)
             }
             is ViewPagerEvent.IntensityChanged -> {
-                stateData.currentIntensity = event.intensity
+                //stateData.currentIntensity = event.intensity
+                stateData.setCurrentIntensity(event.intensity)
+
                 applyFilterWithIntensity(event.intensity)
             }
             else -> {}
@@ -108,11 +116,13 @@ class FilterState(override val activity: PdfPagesEditorActivity) : PhotoViewPage
     }
 
     private fun loadFilterPreview(imageView: ImageView, filterType: PhotoFilters.FilterType){
-        if (activity.photoPaths.isNotEmpty()) {
+        //if (activity.photoPaths.isNotEmpty()) {
+        if(stateData.isPhotoPathsNotEmpty()){
             CoroutineScope(Dispatchers.IO).launch {
                 try {
                     val options = BitmapFactory.Options().apply { inSampleSize = 4 }
-                    val bitmap = BitmapFactory.decodeFile(activity.photoPaths[0], options)
+                    //val bitmap = BitmapFactory.decodeFile(activity.photoPaths[0], options)
+                    val bitmap = BitmapFactory.decodeFile(stateData.getFirstPhotoPath(),options)
                     val previewBitmap = PhotoFilters.applyFilter(
                         activity,
                         bitmap,
@@ -130,32 +140,42 @@ class FilterState(override val activity: PdfPagesEditorActivity) : PhotoViewPage
     }
 
     private fun saveOriginalBitmapForCurrentPosition() {
-        val photoPath = activity.photoPaths[stateData.currentPosition]
+       // val photoPath = activity.photoPaths[stateData.currentPosition]
+        val photoPath=stateData.getPhotoPathCurrentPosition()
         val bitmap = BitmapFactory.decodeFile(photoPath)
-        bitmap?.let {
-            stateData.originalBitmaps[stateData.currentPosition] = it.copy(Bitmap.Config.ARGB_8888, true)
+        bitmap?.let {originalBitmap->
+            //stateData.originalBitmaps[stateData.currentPosition] = it.copy(Bitmap.Config.ARGB_8888, true)
+            val copiedBitmap=originalBitmap.copy(Bitmap.Config.ARGB_8888, true)
+            stateData.setOriginalBitmaps(copiedBitmap)
         }
     }
 
     private fun getFreshOriginalBitmap(position: Int): Bitmap? {
-        val photoPath = activity.photoPaths[position]
+        //val photoPath = activity.photoPaths[position]
+        val photoPath = stateData.getPhotoPathOrNull(position)
         return BitmapFactory.decodeFile(photoPath)
     }
 
     private fun applyFilterToCurrentPhoto(filterType: PhotoFilters.FilterType) {
         currentFilter = filterType
-        val position = stateData.currentPosition
-        val freshBitmap = getFreshOriginalBitmap(stateData.currentPosition)
+        //val position = stateData.currentPosition
+        val position = stateData.getCurrentPosition()
+        //val freshBitmap = getFreshOriginalBitmap(stateData.currentPosition)
+        val freshBitmap = getFreshOriginalBitmap(stateData.getCurrentPosition())
 
-        freshBitmap?.let {
-            stateData.originalBitmaps[stateData.currentPosition] = it.copy(Bitmap.Config.ARGB_8888, true)
+        freshBitmap?.let {bitmap->
+           // stateData.originalBitmaps[stateData.currentPosition] = it.copy(Bitmap.Config.ARGB_8888, true)
+            val copiedBitmap=bitmap.copy(Bitmap.Config.ARGB_8888, true)
+            stateData.setOriginalBitmaps(copiedBitmap)
         }
-        activity.adapter.setFilterForPosition(stateData.currentPosition, filterType, stateData.currentIntensity)
+        //activity.adapter.setFilterForPosition(stateData.currentPosition, filterType, stateData.currentIntensity)
+        activity.adapter.setFilterForPosition(stateData.getCurrentPosition(), filterType, stateData.getCurrentIntensity())
     }
 
     private fun applyFilterWithIntensity(intensity: Float) {
         if (currentFilter != PhotoFilters.FilterType.NONE) {
-            activity.adapter.setFilterForPosition(stateData.currentPosition, currentFilter, intensity)
+           // activity.adapter.setFilterForPosition(stateData.currentPosition, currentFilter, intensity)
+            activity.adapter.setFilterForPosition(stateData.getCurrentPosition(), currentFilter, intensity)
         }
     }
 
@@ -169,21 +189,27 @@ class FilterState(override val activity: PdfPagesEditorActivity) : PhotoViewPage
     }
 
     private fun restoreOriginalImageForCurrentPosition() {
-        val position = stateData.currentPosition
+        //val position = stateData.currentPosition
+        val position = stateData.getCurrentPosition()
         activity.adapter.clearFilter(position)
        // stateData.originalBitmaps.remove(position)
     }
 
     private fun saveFilterImageToFile() {
-        val position = stateData.currentPosition
-        val photoPath = activity.photoPaths[position]
-        val currentIntensity = activity.adapter.filterIntensityMap[position] ?: 1.0f
+        //val position = stateData.currentPosition
+        val position = stateData.getCurrentPosition()
+
+       // val photoPath = activity.photoPaths[position]
+        val photoPath = stateData.getPhotoPathOrNull(position)
+       // val currentIntensity = activity.adapter.filterIntensityMap[position] ?: 1.0f
+        val currentIntensity = stateData.GetFilterIntensity(position)
         val filterToApply = activity.adapter.getFilterForPosition(position)
 
         if (filterToApply != PhotoFilters.FilterType.NONE) {
             CoroutineScope(Dispatchers.IO).launch {
                 try {
-                    val originalBitmap = stateData.originalBitmaps[position]
+                    //val originalBitmap = stateData.originalBitmaps[position]
+                    val originalBitmap = stateData.getPositionOriginalBitmaps()
 
                     originalBitmap?.let { bitmap ->
 
@@ -198,20 +224,29 @@ class FilterState(override val activity: PdfPagesEditorActivity) : PhotoViewPage
                         }
 
                         try {
-                            FileOutputStream(photoPath).use { out ->
-                                val success = filteredBitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)
+                            if(photoPath!=null){
+                            File(photoPath).outputStream().use { out ->
+                                val success =
+                                    filteredBitmap.compress(Bitmap.CompressFormat.JPEG, 90, out)
                                 if (!success) {
                                     throw IOException("файл НЕ обновлен")
-                                }
-                                else{
+                                } else {
                                     withContext(Dispatchers.Main) {
-                                        Toast.makeText(activity, "файл обновлен", Toast.LENGTH_SHORT).show()
+                                        Toast.makeText(
+                                            activity,
+                                            "файл обновлен",
+                                            Toast.LENGTH_SHORT
+                                        ).show()
                                     }
                                 }
+                              }
+                            }else{
+                                Toast.makeText(activity,"photoPath==null",Toast.LENGTH_SHORT).show()
                             }
 
-                            stateData.originalBitmaps[position] =
-                                filteredBitmap.copy(Bitmap.Config.ARGB_8888, true)
+                            //stateData.originalBitmaps[position] = filteredBitmap.copy(Bitmap.Config.ARGB_8888, true)
+                            val copiedBitmap=filteredBitmap.copy(Bitmap.Config.ARGB_8888, true)
+                            stateData.setOriginalBitmaps(copiedBitmap)
 
                             withContext(Dispatchers.Main) {
                                 Toast.makeText(activity, "Фильтр сохранён", Toast.LENGTH_SHORT).show()

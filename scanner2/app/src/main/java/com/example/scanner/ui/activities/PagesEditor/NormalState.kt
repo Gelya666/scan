@@ -38,21 +38,26 @@ class NormalState(override val activity: PdfPagesEditorActivity) : PhotoViewPage
 
     private fun undoLastCrop() {
         try {
-            val position = stateData.currentPosition
-            val backupPath = stateData.originalImagesBackup[position] ?: return
-            val currentPath = activity.photoPaths[position]
+            val position = stateData.getCurrentPosition()
+           // val backupPath = stateData.originalImagesBackup[position] ?: return
+            val backupPath=stateData.getOriginalImagesBackupPosition(position)
+            if(backupPath==null) return
+            //val currentPath = activity.photoPaths[position]
+            val currentPath=stateData.getPhotoPathPosition(position)
 
             val backupFile = File(backupPath)
             val currentFile = File(currentPath)
 
             if (!backupFile.exists()) {
-                stateData.originalImagesBackup.remove(position)
+                //stateData.originalImagesBackup.remove(position)
+                stateData.removeOriginalImagesBackup(position)
                 return
             }
 
             backupFile.copyTo(currentFile, overwrite = true)
             backupFile.delete()
-            stateData.originalImagesBackup.remove(position)
+            //stateData.originalImagesBackup.remove(position)
+            stateData.removeOriginalImagesBackup(position)
 
             activity.adapter.notifyItemChanged(position)
             Toast.makeText(activity, "Обрезка отменена", Toast.LENGTH_SHORT).show()
