@@ -44,6 +44,7 @@ class PdfFileActivity : AppCompatActivity() {
     private var pdfFile: File? = null
     private var currentFileName:String?=null
     private var  filePath:String?=null
+    private lateinit var fileDisplayHelper: FileDisplayHelper
     @SuppressLint("ClickableViewAccessibility", "MissingInflatedId")
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -62,14 +63,19 @@ class PdfFileActivity : AppCompatActivity() {
         btnNext = findViewById(R.id.btnNext)
         btnBack = findViewById(R.id.btnBack)
         btnAdd=findViewById(R.id.btnAdd)
+        fileDisplayHelper= FileDisplayHelper(contentResolver)
         filePath = intent.extras?.getString("PDF_FILE_PATH")
          currentFileName=intent.getStringExtra("PDF_FILE_NAME")
+
+        Log.d("NAME","Имя файл $currentFileName")
+        Log.d("NAME","Путь файла $filePath")
+
         if(currentFileName==null&&filePath!=null){
             val uglyName=File(filePath!!).name
             currentFileName=formatTimeStamp(uglyName)
         }
         val uriString=intent.getStringExtra("pdf_uri")
-        Log.d("danil_logs", "onCreate: $filePath")
+        Log.d("danil_logs", "onCreate: $uriString")
         when {
             // Вариант 1: есть путь к файлу
             !filePath.isNullOrEmpty() -> {
@@ -236,9 +242,9 @@ class PdfFileActivity : AppCompatActivity() {
                 pageCount = pdfRenderer!!.pageCount
 
                 // Получаем имя файла из URI
-                val fileName = uri.lastPathSegment ?: "Документ.pdf"
-                val newName=formatTimeStamp(fileName)
-                tvFileName.text = newName
+                //val fileName = uri.lastPathSegment ?: "Документ.pdf"
+                //val newName=formatTimeStamp(fileName)
+                tvFileName.text = fileDisplayHelper.getFileDisplayName(uri)
                 //количество страниц-всего/текущая
                 tvPageInfo.text = "1/$pageCount"
                 showPage(0)

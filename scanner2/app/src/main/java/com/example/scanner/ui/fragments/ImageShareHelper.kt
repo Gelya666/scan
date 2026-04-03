@@ -53,8 +53,6 @@ class ImageShareHelper( val context: Context) {
         }
         return uris
     }
-
-
     private fun showToast(message: String) {
         Toast.makeText(context,message,Toast.LENGTH_SHORT).show()
     }

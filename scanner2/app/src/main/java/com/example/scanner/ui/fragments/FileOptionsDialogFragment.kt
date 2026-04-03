@@ -3,28 +3,33 @@ package com.example.scanner.ui.fragments
 import android.app.AlertDialog
 import android.app.Dialog
 import android.content.Context
+import android.net.Uri
 import android.os.Bundle
 import android.util.Log
 import android.widget.Button
+import android.widget.Toast
 import androidx.fragment.app.DialogFragment
 import com.example.scanner.R
 
 class FileOptionsDialogFragment: DialogFragment() {
-    private lateinit var filename:String
+    private  var filename:String=""
+    private var fileUri: Uri?=null
+    private lateinit var cloudSelector: CloudStorageSelector
     private var listener:FileOptionsListener?=null
     private var position=-1
 
     interface FileOptionsListener {
         fun onRename(filename: String,position: Int)
         fun onHide(filename: String)
-        fun onDownload(filename: String)
+        fun onDownload(fileUri: Uri?, filePath: String)
         fun onDelete(filename: String,position:Int)
         fun onReject(filename: String)
     }
     companion object {
-        fun newInstance(filename: String?, position: Int): FileOptionsDialogFragment {
+        fun newInstance(fileUri:Uri?,filename: String?, position: Int): FileOptionsDialogFragment {
             val fragment = FileOptionsDialogFragment()
             val args = Bundle()
+            args.putParcelable("fileUri",fileUri)
             args.putString("filename", filename)
             args.putInt("position",position)
             fragment.arguments = args
@@ -34,8 +39,10 @@ class FileOptionsDialogFragment: DialogFragment() {
         override fun onCreateDialog(savedInstanceState: Bundle?): Dialog
         {
             filename=arguments?.getString("filename")?:""
+            fileUri=arguments?.getParcelable("fileUri")
             position = arguments?.getInt("position", -1) ?: -1
             val view=layoutInflater.inflate(R.layout.dialog_file_options,null)
+            cloudSelector= CloudStorageSelector(requireContext())
             val builder= AlertDialog.Builder(requireActivity())
            .setTitle("Выберите опцию")
            .setView(view)
@@ -55,7 +62,8 @@ class FileOptionsDialogFragment: DialogFragment() {
                     }
 
                             dialog?.findViewById<Button>(R.id.btn_download)?.setOnClickListener {
-                                listener?.onDownload(filename)
+                                fileUri?.let{uri->cloudSelector.show(uri)
+                                listener?.onDownload(uri,filename)} ?: Toast.makeText(requireContext(),"URI файл отсутсвует",Toast.LENGTH_SHORT)
                                 dismiss()
                             }
                                 dialog?.findViewById<Button>(R.id.btn_delete)?.setOnClickListener {

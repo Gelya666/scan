@@ -225,8 +225,8 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
         Toast.makeText(this, "Файл скрыт:$filename", Toast.LENGTH_SHORT).show()
     }
 
-    override fun onDownload(filename: String) {
-        Toast.makeText(this, "Файл сохранен:$filename", Toast.LENGTH_SHORT).show()
+    override fun onDownload(fileUri: Uri?, fileName: String) {
+        Toast.makeText(this, "Файл сохранен:$fileName", Toast.LENGTH_SHORT).show()
     }
 
     override fun onDelete(filename: String, position: Int) {
@@ -314,7 +314,7 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
         builder.show()
     }
     override fun onFileClick(position: Int, fileName: String, pdfFile: PdfFile) {
-        val dialog = FileOptionsDialogFragment.Companion.newInstance(fileName,position)
+        val dialog = FileOptionsDialogFragment.Companion.newInstance(pdfFile.PathPdfFile,fileName,position)
          dialog.show(supportFragmentManager, "file_options_dialog")
     }
 
@@ -327,6 +327,7 @@ class MainActivity : AppCompatActivity(), FileOptionsDialogFragment.FileOptionsL
         if(uri!=null){
             val intent=Intent(this,PdfFileActivity::class.java)
             intent.putExtra("pdf_uri",uri.toString())
+            intent.putExtra("PDF_FILE_NAME",pdfFile.pdfName)
             startActivity(intent)
         }else{
             Toast.makeText(this,"URI файл пустой",Toast.LENGTH_SHORT).show()
