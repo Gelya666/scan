@@ -8,12 +8,15 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.WindowManager
+import android.view.animation.AnimationUtils
 import android.widget.ImageView
 import android.widget.Toast
 import androidx.fragment.app.DialogFragment
 import com.example.scanner.R
+import com.example.scanner.ui.activities.PagesEditor.ButtonHighlighter
 import com.example.scanner.ui.activities.PagesEditor.PdfPagesEditorActivity
 import com.example.scanner.ui.activities.PagesEditor.StateData
+import com.google.android.material.button.MaterialButton
 import java.io.File
 
 class HalfScreenDialogFragment() : DialogFragment()
@@ -24,6 +27,10 @@ class HalfScreenDialogFragment() : DialogFragment()
     private lateinit var sharedStateData: StateData
     private lateinit var previewHelper: ImagePreviewHelper
     private lateinit var imageShareHelper: ImageShareHelper
+    private lateinit var buttonHighlighter: ButtonHighlighter
+    private lateinit var btnOn: MaterialButton
+    private lateinit var btnOff: MaterialButton
+
 
 
     //список путей к фотографиям
@@ -44,6 +51,13 @@ class HalfScreenDialogFragment() : DialogFragment()
         val photoPaths=sharedStateData.getPhotoPaths()
         previewHelper.loadFirstPreview(photoPaths)
         imageShareHelper= ImageShareHelper(requireContext())
+        btnOn=view.findViewById(R.id.btn_on)
+        btnOff=view.findViewById(R.id.btn_off)
+        buttonHighlighter= ButtonHighlighter(requireContext())
+        buttonHighlighter.setHighlighted(btnOn,true)
+        buttonHighlighter.setHighlighted(btnOff,false)
+
+
 
         //вызов функции для обработки всх кликов
         setupClickListeners(view)
@@ -77,9 +91,6 @@ class HalfScreenDialogFragment() : DialogFragment()
             shareImage()
             dismiss()
         }
-        view.findViewById<View>(R.id.btn_addPage)?.setOnClickListener {
-            dismiss()
-        }
         view.findViewById<View>(R.id.btn_email)?.setOnClickListener {
             //if(photoPaths.isEmpty()){
               if(sharedStateData.isPhotoPathsEmpty()){
@@ -98,16 +109,24 @@ class HalfScreenDialogFragment() : DialogFragment()
             dismiss()
         }
         view.findViewById<View>(R.id.btn_undo)?.setOnClickListener{
-            dismiss()
+            view->
+            val clickAnim= AnimationUtils.loadAnimation(context,R.anim.button_click)
+            view.startAnimation(clickAnim)
+            view.postDelayed({dismiss()},100)
         }
-        view.findViewById<View>(R.id.btn_on)?.setOnClickListener {
-            dismiss()
+        btnOff.setOnClickListener {
+            buttonHighlighter.setHighlighted(btnOff,true)
+            buttonHighlighter.setHighlighted(btnOn,false)
+            val clickAnim=AnimationUtils.loadAnimation(context,R.anim.button_click)
+            it.startAnimation(clickAnim)
         }
-        view.findViewById<View>(R.id.btn_on)?.setOnClickListener {
-            dismiss()
+        btnOn.setOnClickListener {
+            buttonHighlighter.setHighlighted(btnOff,false)
+            buttonHighlighter.setHighlighted(btnOn,true)
+            val clickAnim=AnimationUtils.loadAnimation(context,R.anim.button_click)
+            it.startAnimation(clickAnim)
         }
     }
-
     private fun shareImage(){
         val photoPath=sharedStateData.getPhotoPaths()
         imageShareHelper.shareImages(photoPath)

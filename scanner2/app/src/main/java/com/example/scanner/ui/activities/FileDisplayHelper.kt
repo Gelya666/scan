@@ -1,21 +1,34 @@
 package com.example.scanner.ui.activities
+import android.annotation.SuppressLint
 import android.content.ContentResolver
 import android.net.Uri
 import android.provider.MediaStore
+import android.util.Log
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+
 class FileDisplayHelper(private val contentResolver: ContentResolver){
     fun getFileDisplayName(uri: Uri):String{
         val name=getFileName(uri)?:"Документ"
-        val date=getFileDate(uri)
+        val date=getFileDate(uri)?: extractDateFromFileName(name)
+        Log.d("date","date=$date name=$name")
         name.replace(".pdf","",true)
-        return if (date!=null){
-            "Photo from $date"
-        }else{
-            name
-        }
+        if(date!=null){
+        return "Photo from $date"}
+        return "Document"
     }
+
+    private fun extractDateFromFileName(fileName: String): String? {
+        Log.d("DATE_EXTRACT","исходное имя файла $fileName")
+        val datePattern= Regex("""(\d{2})\.(\d{2})\.(\d{4})""")
+        Log.d("DATE_EXTRACT","паттерн: ${datePattern.pattern}")
+
+        val matchResult=datePattern.find(fileName)
+        Log.d("DATE_EXTRACT","matchResult: ${matchResult}")
+        return matchResult?.value
+    }
+
     private fun getFileDate(uri: Uri):String? {
         return try{
             //запрос даты изменения файла
@@ -41,6 +54,7 @@ class FileDisplayHelper(private val contentResolver: ContentResolver){
             null
         }
     }
+    @SuppressLint("SuspiciousIndentation")
     fun getFileName(uri: Uri): String? {
         return try{
             //запрос на uri

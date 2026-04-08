@@ -142,7 +142,9 @@ class PdfFileActivity : AppCompatActivity() {
             Log.d("PDF_DIR","Создана папка ${pdfDir.absolutePath}")
         }
         val sourceFile=File(filePath)
-       val destFile=File(pdfDir,"pdf_${System.currentTimeMillis()}.pdf")
+        val dateFormat=SimpleDateFormat("dd.MM.yyyy",Locale.getDefault())
+        val currentDateTime=dateFormat.format(Date())
+       val destFile=File(pdfDir,"pdf_$currentDateTime.pdf")
       try{
           sourceFile.copyTo(destFile,overwrite=true)
           if(destFile.exists()){

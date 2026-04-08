@@ -307,8 +307,10 @@ class PdfPagesEditorActivity : AppCompatActivity() {
         adapter.updateData(ArrayList())
     }
     fun saveImageToPdf() {
-        val timeStamp = SimpleDateFormat("yyyyMMdd-HHmmss", Locale.getDefault()).format(Date())
-        val pdfFileName = "photos_$timeStamp.pdf"
+        val currentDate=Date()
+        val timeStamp = SimpleDateFormat("dd.MM.yyyy", Locale.getDefault())
+        val timeStampForDisplay=timeStamp.format(currentDate)
+        val pdfFileName = "Photo from $timeStampForDisplay.pdf"
         //val pdfFilePath = createAndSavePdfNow(photoPaths, pdfFileName)
         val pdfFilePath = createAndSavePdfNow(stateData.getPhotoPaths(), pdfFileName)
         if (pdfFilePath != null ) {

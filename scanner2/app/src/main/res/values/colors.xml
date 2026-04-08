@@ -9,6 +9,7 @@
     <color name="color_crop">#4CAF50</color>
     <color name="color_filter">#2196F3</color>
     <color name="color_primary">#FF5722</color>
+    <color name="purple_500">#7789FF</color>
 
 
 </resources>
