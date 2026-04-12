@@ -31,92 +31,109 @@
 
     <TextView
         android:id="@+id/textScanner"
-        android:layout_width="155dp"
-        android:layout_height="56dp"
-        android:layout_marginTop="48dp"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="36dp"
         android:fontFamily="@font/fonts"
         android:text="Scanner DOC"
         android:textColor="#FFFFFF"
-        android:textSize="20sp"
+        android:textSize="26sp"
         android:textStyle="bold"
+        android:letterSpacing="0.08"
+        android:shadowColor="#20000000"
+        android:shadowDx="0"
+        android:shadowDy="4"
+        android:gravity="center"
+        android:shadowRadius="8"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="0.546"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
     <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="72dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:background="@drawable/bottom_nav_background"
+        android:orientation="horizontal"
+        android:weightSum="3"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent">
+
+
+    <LinearLayout
         android:id="@+id/btn_home"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
         android:orientation="vertical"
         android:gravity="center"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@+id/btn_camera"
-        android:baselineAligned="false"
-        app:layout_constraintWidth_percent="0.33">
+        android:focusable="true"
+        android:clickable="true"
+        android:background="?attr/selectableItemBackgroundBorderless">
 
         <ImageButton
             android:id="@+id/btn_hOme"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
-            android:background="@drawable/circle_back"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
             android:src="@drawable/home"
-            android:contentDescription="Нажать на иконку дом" />
+            android:contentDescription="Нажать на иконку дом"
+          />
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Home"
+            android:layout_marginTop="4dp"
+            android:textSize="12sp"
             android:textColor="#B6B7B8"
             android:fontFamily="@font/fonts"
             android:textStyle="bold"
-            android:textAlignment="center" />
+            />
     </LinearLayout>
     <LinearLayout
         android:id="@+id/btn_camera"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
         android:orientation="vertical"
         android:gravity="center"
-        android:layout_marginTop="100dp"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toEndOf="@id/btn_home"
-        app:layout_constraintEnd_toStartOf="@+id/btn_pdf"
-        android:baselineAligned="false"
-        app:layout_constraintWidth_percent="0.33">
+        android:clickable="true"
+        android:focusable="true"
+        android:background="?attr/selectableItemBackgroundBorderless">
         <ImageButton
+            android:layout_marginTop="4dp"
             android:background="@android:color/transparent"
             android:id="@+id/btnOpenCamera"
-            android:layout_width="80dp"
-            android:layout_height="80dp"
+            android:layout_width="56dp"
+            android:layout_height="56dp"
             android:src="@drawable/icon_with_badge"
-            android:scaleType="fitCenter"
-            android:padding="8dp"
-            android:layout_marginTop="50dp"
-            app:layout_constraintVertical_bias="1"
+            android:scaleType="centerInside"
+            android:padding="0dp"
             android:contentDescription="Нажать на иконку камера" />
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text=""
-            android:textAlignment="center" />
+            android:textSize="12sp"
+            android:layout_marginTop="4dp"/>
     </LinearLayout>
     <LinearLayout
         android:id="@+id/btn_pdf_item"
         android:layout_width="0dp"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
+        android:layout_weight="1"
         android:orientation="vertical"
         android:gravity="center"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toEndOf="@id/btn_camera"
-        app:layout_constraintEnd_toEndOf="parent"
-        android:baselineAligned="false"
-        app:layout_constraintWidth_percent="0.33">
+        android:clickable="true"
+        android:focusable="true"
+        android:background="?attr/selectableItemBackgroundBorderless">
 
         <ImageButton
             android:id="@+id/btn_pdf"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
             android:contentDescription="Нажать на PDF файл"
             android:background="@android:color/transparent"
             android:src="@drawable/pdf_small" />
@@ -124,21 +141,29 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
             android:text="Files"
             android:fontFamily="@font/fonts"
             android:textStyle="bold"
             android:textColor="#B6B7B8"
-            android:textAlignment="center" />
+            android:textSize="12sp" />
 
     </LinearLayout>
+    </LinearLayout>
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/recView"
-        android:layout_width="408dp"
-        android:layout_height="570dp"
-        app:layout_constraintBottom_toTopOf="@+id/btn_camera"
+        android:layout_width="384dp"
+        android:layout_height="588dp"
+        android:layout_marginStart="16dp"
+        android:layout_marginTop="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_marginBottom="16dp"
+        android:background="#FFFFFF"
+        app:layout_constraintBottom_toBottomOf="@+id/view_background"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintHorizontal_bias="1.0"
+        app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/textScanner"
-        app:layout_constraintVertical_bias="0.0" />
+        app:layout_constraintVertical_bias="1.0" />
 </androidx.constraintlayout.widget.ConstraintLayout>

@@ -246,6 +246,7 @@ class PdfFileActivity : AppCompatActivity() {
                 // Получаем имя файла из URI
                 //val fileName = uri.lastPathSegment ?: "Документ.pdf"
                 //val newName=formatTimeStamp(fileName)
+                btnAdd.visibility=View.GONE
                 tvFileName.text = fileDisplayHelper.getFileDisplayName(uri)
                 //количество страниц-всего/текущая
                 tvPageInfo.text = "1/$pageCount"

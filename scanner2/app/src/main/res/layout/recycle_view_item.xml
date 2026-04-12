@@ -1,35 +1,40 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/viewBackgroundSec"
-    android:layout_width="402dp"
-    android:layout_height="98dp"
-    android:layout_marginTop="16dp"
-    android:background="@drawable/rectangle_shape2"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginTop="8dp"
+    android:layout_marginEnd="0dp"
+    android:layout_marginStart="0dp"
     android:clickable="true"
     android:focusable="true"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp"
     android:foreground="?android:attr/selectableItemBackground"
-    app:layout_constraintEnd_toEndOf="parent"
-    app:layout_constraintHorizontal_bias="0.444"
-    app:layout_constraintStart_toStartOf="parent"
-    app:layout_constraintTop_toTopOf="parent">
-    <!-- Текст с названием PDF файла -->
-    <ImageView
-        android:id="@+id/iconPdfFirstScreen"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:layout_gravity="start|center_vertical"
-        android:layout_marginStart="4dp"
-        android:scaleType="fitXY"
-        android:background="#00E5FF" />
+    app:cardBackgroundColor="#F2F2F2">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_gravity="center_vertical"
-        android:layout_marginStart="60dp"
-        android:layout_marginEnd="100dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal"
+         android:padding="12dp"
+        android:background="@android:color/transparent">
+    <!-- Текст с названием PDF файла -->
+    <ImageView
+        android:id="@+id/iconPdfFirstScreen"
+        android:layout_width="48dp"
+        android:layout_height="48dp"
+        android:scaleType="centerCrop" />
+
+    <LinearLayout
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="12dp"
+        android:layout_marginEnd="8dp"
         android:orientation="vertical">
 
     <TextView
@@ -41,7 +46,8 @@
         android:maxLines="1"
         android:text="Название PDF файла"
         android:textSize="16sp"
-        android:textStyle="bold" />
+        android:textStyle="bold"
+        android:textColor="#454141"/>
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -56,11 +62,13 @@
             android:maxLines="1"
             android:text="18.02.2026"
             android:textSize="12sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:textColor="#B6B7B8"/>
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="  •  "
+            android:textColor="#B6B7B8"
             android:textSize="12sp"
             android:textStyle="bold"/>
 
@@ -72,33 +80,32 @@
             android:maxLines="1"
             android:text="2.5 МВ"
             android:textSize="12sp"
-            android:textStyle="bold" />
+            android:textStyle="bold"
+            android:textColor="#B6B7B8"/>
     </LinearLayout>
     </LinearLayout>
     <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:layout_gravity="end"
-        android:orientation="vertical"
-        android:gravity="center_horizontal">
+        android:orientation="horizontal">
     <ImageButton
         android:id="@+id/points"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
-        android:layout_marginBottom="6dp"
-        android:background="@null"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:background="?attr/selectableItemBackgroundBorderless"
         android:contentDescription="Нажать на иконку"
-        android:padding="12dp"
+        android:padding="8dp"
         android:scaleType="fitCenter"
         app:srcCompat="@drawable/points_small" />
 
         <ImageButton
             android:id="@+id/download"
-            android:layout_width="48dp"
-            android:layout_height="46dp"
-            android:background="@null"
-            android:padding="12dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:padding="8dp"
             android:scaleType="fitCenter"
             app:srcCompat="@drawable/download" />
     </LinearLayout>
-</FrameLayout>
+    </LinearLayout>
+</androidx.cardview.widget.CardView>

@@ -4,16 +4,14 @@
     <!-- Круглый фон (увеличен) -->
     <item
         android:drawable="@drawable/circle_background"
-        android:width="70dp"
-    android:height="70dp"/>
+        android:width="56dp"
+    android:height="56dp"/>
 
     <!-- Иконка камеры (увеличена и перецентрирована) -->
     <item
         android:drawable="@drawable/camera_ic"
         android:width="30dp"
     android:height="30dp"
-    android:gravity="top|right"
-    android:top="20dp"
-    android:right="20dp"/>
+    android:gravity="center"/>
 
 </layer-list>
